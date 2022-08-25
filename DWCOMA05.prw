@@ -85,8 +85,8 @@ Static Function ReportPrint(oReport)
 		oSect2 := oReport:Section(2)
 
 		oSect1:Init()
-		oSect2:Init()
-
+		oSect2:Init()			
+		oSect1:PrintLine()
 
 	Endif
 
@@ -100,6 +100,7 @@ Static Function ReportPrint(oReport)
 			oSect1:PrintLine()
 
 		else
+			
 			oSect2:Init()
 			oSect2:PrintLine()
 			oSect2:Finish()
