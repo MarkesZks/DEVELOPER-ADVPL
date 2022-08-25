@@ -4,7 +4,7 @@ User Function DWCOMA05()
 
 	Local oReport := Nil
 	Private cTab := GetNextAlias()
-	
+
 	oReport := ReportDef()
 	oReport:PrintDialog()
 
@@ -29,12 +29,12 @@ Static Function ReportDef()
 	TRCell():New(oSect1, "C5_CONDPAG"	, , "Cond. Pgto", , TamSX3("C5_CONDPAG")[1] , , {|| (cTab)->C5_CONDPAG} )
 
 	oBreak1 := TRBreak():New(oSect1, {|| (cTab)->C5_NUM}, )
-	TRFunction():New(oSect1:Cell("C5_NUM"), , "Codigo", oBreak1, , ,, .F. , .F., .F., , , , )
-	TRFunction():New(oSect1:Cell("C5_TIPO") , , "Tipo", oBreak1, , PesqPict("SC5", "C5_TIPO"),  , .F., .F., .F.)
-	TRFunction():New(oSect1:Cell("C5_CLIENTE") , , "Cliente", oBreak1, /**/, PesqPict("SC5", "C5_CLIENTE"),  , .F., .F., .F./*lEndPage*/)
-	TRFunction():New(oSect1:Cell("C5_LOJACLI") , , "Loja", oBreak1, /**/, PesqPict("SC5", "C5_LOJACLI"), , .F., .F., .F./*lEndPage*/)
-	TRFunction():New(oSect1:Cell("C5_TIPOCLI") , , "Tipo Cliente", oBreak1, /**/, PesqPict("SC5", "C5_TIPOCLI"),, .F., .F., .F./*lEndPage*/)
-	TRFunction():New(oSect1:Cell("C5_CONDPAG") , , "SUM", oBreak1, /**/, PesqPict("SC5", "C5_CONDPAG"),   , .F., .F., .F./*lEndPage*/)
+	//TRFunction():New(oSect1:Cell("C5_NUM"), , "Codigo", oBreak1, , ,, .F. , .F., .F., , , , )
+	//TRFunction():New(oSect1:Cell("C5_TIPO") , , "Tipo", oBreak1, , PesqPict("SC5", "C5_TIPO"),  , .F., .F., .F.)
+	//TRFunction():New(oSect1:Cell("C5_CLIENTE") , , "Cliente", oBreak1, /**/, PesqPict("SC5", "C5_CLIENTE"),  , .F., .F., .F./*lEndPage*/)
+	//TRFunction():New(oSect1:Cell("C5_LOJACLI") , , "Loja", oBreak1, /**/, PesqPict("SC5", "C5_LOJACLI"), , .F., .F., .F./*lEndPage*/)
+	//TRFunction():New(oSect1:Cell("C5_TIPOCLI") , , "Tipo Cliente", oBreak1, /**/, PesqPict("SC5", "C5_TIPOCLI"),, .F., .F., .F./*lEndPage*/)
+	//TRFunction():New(oSect1:Cell("C5_CONDPAG") , , "SUM", oBreak1, /**/, PesqPict("SC5", "C5_CONDPAG"),   , .F., .F., .F./*lEndPage*/)
 
 
 	oSect2 := TRSection():New(oReport)
@@ -65,7 +65,10 @@ Static Function ReportPrint(oReport)
 	cQuery += "C6_QTDVEN, "	+ CRLF
 	cQuery += "C6_PRCVEN,"	 + CRLF
 	cQuery += "C6_TES FROM "+ RetSQLName("SC5") +" INNER JOIN "+ RetSQLName("SC6")+" ON SC5990.C5_NUM = SC6990.C6_NUM"+ CRLF
+	cQuery +="WHERE C5_LIBEROK = '' AND SC5990.D_E_L_E_T_ = '' AND SC6990.D_E_L_E_T_ = ''" + CRLF
 	cQuery += "ORDER BY C5_NUM"+ CRLF
+
+
 
 	MPSysOpenQuery(cQuery, cTab)
 
@@ -84,32 +87,25 @@ Static Function ReportPrint(oReport)
 		oSect1:Init()
 		oSect2:Init()
 
-		oSect1:PrintLine()
+
 	Endif
 
 	While ((cTab)->(!Eof()))
 		nCont++
 		oReport:IncMeter()
-
-		oSect1:PrintLine()
-
 		If (cNat <> (cTab)->C5_NUM)
 			oSect1:Finish()
-
 			cNat := (cTab)->C5_NUM
-
 			oSect1:Init()
-
 			oSect1:PrintLine()
-		Endif
 
-		oSect2:PrintLine()
-
+		else
+			oSect2:Init()
+			oSect2:PrintLine()
+			oSect2:Finish()
+Endif
 
 		If (nCont == nRegs)
-			oSect1:Finish()
-			oSect2:Finish()
-
 			oReport:EndPage()
 		Endif
 
