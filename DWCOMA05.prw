@@ -21,40 +21,44 @@ Static Function ReportDef()
 	oReport:SetPortrait()
 
 	oSect1 := TRSection():New(oReport)
+	TRCell():New(oSect1, "C5_FILIAL"	, , "Filial", , TamSX3("C5_FILIAL")[1] , , {|| (cTab)->C5_FILIAL})
+	//Pegando o campo da filial
 	TRCell():New(oSect1, "C5_NUM"   , , "Codigo"   , , TamSX3("C5_NUM")[1] , , {|| (cTab)->C5_NUM}) //Criar as colunas que vão aparecer no relatório
 	TRCell():New(oSect1, "C5_TIPO"   , , "Tipo"   , , TamSX3("C5_TIPO")[1] , , {|| (cTab)->C5_TIPO})
 	TRCell():New(oSect1, "C5_CLIENTE" , , "Cliente" , , TamSX3("C5_CLIENTE")[1]  , ,{|| (cTab)->C5_CLIENTE} )
 	TRCell():New(oSect1, "C5_LOJACLI" , ,"Loja"   , , TamSX3("C5_LOJACLI")[1]   , ,{|| (cTab)->C5_LOJACLI} )
 	TRCell():New(oSect1, "C5_TIPOCLI"   , , "Tipo Cliente"   , , TamSX3("C5_TIPOCLI")[1] , ,{|| (cTab)->C5_TIPOCLI})
-	TRCell():New(oSect1, "C5_CONDPAG"	, , "Cond. Pgto", , TamSX3("C5_CONDPAG")[1] , , {|| (cTab)->C5_CONDPAG} )
+	TRCell():New(oSect1, "C5_CONDPAG"	, , "Cond. Pgto", , TamSX3("C5_CONDPAG")[1] , , {|| (cTab)->C5_CONDPAG})
+
+
 
 	oBreak1 := TRBreak():New(oSect1, {|| (cTab)->C5_NUM}, )
-	//TRFunction():New(oSect1:Cell("C5_NUM"), , "Codigo", oBreak1, , ,, .F. , .F., .F., , , , )
-	//TRFunction():New(oSect1:Cell("C5_TIPO") , , "Tipo", oBreak1, , PesqPict("SC5", "C5_TIPO"),  , .F., .F., .F.)
-	//TRFunction():New(oSect1:Cell("C5_CLIENTE") , , "Cliente", oBreak1, /**/, PesqPict("SC5", "C5_CLIENTE"),  , .F., .F., .F./*lEndPage*/)
-	//TRFunction():New(oSect1:Cell("C5_LOJACLI") , , "Loja", oBreak1, /**/, PesqPict("SC5", "C5_LOJACLI"), , .F., .F., .F./*lEndPage*/)
-	//TRFunction():New(oSect1:Cell("C5_TIPOCLI") , , "Tipo Cliente", oBreak1, /**/, PesqPict("SC5", "C5_TIPOCLI"),, .F., .F., .F./*lEndPage*/)
-	//TRFunction():New(oSect1:Cell("C5_CONDPAG") , , "SUM", oBreak1, /**/, PesqPict("SC5", "C5_CONDPAG"),   , .F., .F., .F./*lEndPage*/)
-
+	//Cria�ao de mais um break
+	oBreak2 := TRBreak():New(oSect1, {|| (cTab)->C5_FILIAL}, )
 
 	oSect2 := TRSection():New(oReport)
+	TRCell():New(oSect2, "C6_FILIAL"	, , "Filial_Prod", , TamSX3("C6_FILIAL")[1] , , {|| (cTab)->C6_FILIAL})
+	//Pegando o campo da filial
 	TRCell():New(oSect2, "C6_ITEM", , "Item"	, , TamSX3("C6_ITEM")[1]   , ,{|| (cTab)->C6_ITEM})
 	TRCell():New(oSect2, "C6_PRODUTO"	, , "Produto"	, , TamSX3("C6_PRODUTO")[1]   , , {|| (cTab)->C6_PRODUTO})
 	TRCell():New(oSect2, "C6_QTDVEN", , "Quantidade"	, , TamSX3("C6_QTDVEN")[1]   , ,{|| (cTab)->C6_QTDVEN})
 	TRCell():New(oSect2, "C6_PRCVEN"	, , "Valor"	, , TamSX3("C6_PRCVEN")[1]+12   , /*lPixel*/,{|| (cTab)->C6_PRCVEN})
 	TRCell():New(oSect2, "C6_TES", , "TES"	, , TamSX3("C6_TES")[1]   , /*lPixel*/,{|| (cTab)->C6_TES})
 
+	oBreak3 := TRBreak():New(oSect2, {|| (cTab)->C6_FILIAL}, )
 Return(oReport)
 
+
 Static Function ReportPrint(oReport)
-	Local oSect1 := Nil
-	Local oSect2 := Nil
+
 	Local nRegs     := 0
 	Local nCont     := 0
 	Local cQuery := ""
 
 	Default oReport := Nil
-	cQuery += "SELECT C5_NUM,"		+ CRLF
+	cQuery += "SELECT C5_FILIAL,"+ CRLF
+	cQuery += "C6_FILIAL,"			+ CRLF
+	cQuery += "C5_NUM,"			+ CRLF
 	cQuery += "C5_TIPO,"			+ CRLF
 	cQuery += "C5_CLIENTE,"			+ CRLF //+
 	cQuery += "C5_LOJACLI,"	+ CRLF
@@ -65,7 +69,7 @@ Static Function ReportPrint(oReport)
 	cQuery += "C6_QTDVEN, "	+ CRLF
 	cQuery += "C6_PRCVEN,"	 + CRLF
 	cQuery += "C6_TES FROM "+ RetSQLName("SC5") +" INNER JOIN "+ RetSQLName("SC6")+" ON SC5990.C5_NUM = SC6990.C6_NUM"+ CRLF
-	cQuery +="WHERE C5_LIBEROK = '' AND SC5990.D_E_L_E_T_ = '' AND SC6990.D_E_L_E_T_ = ''" + CRLF
+	cQuery +="WHERE C5_LIBEROK = '' AND SC5990.D_E_L_E_T_ = '' AND SC6990.D_E_L_E_T_ = '' AND C5_FILIAL = "+ xFilial("SC5") +"AND C6_FILIAL = "+ xFilial("SC6")+ CRLF
 	cQuery += "ORDER BY C5_NUM"+ CRLF
 
 
@@ -75,18 +79,19 @@ Static Function ReportPrint(oReport)
 	DbSelectArea((cTab))
 	Count To nRegs
 	(cTab)->(DbGoTop())
-
 	If (!Empty(nRegs))
 		oReport:SetMeter(nRegs)
 
 		cNat := (cTab)->C5_NUM
+		//CFilial :=(cTab)->C5_FILIAL
 
-		oSect1 := oReport:Section(1)
-		oSect2 := oReport:Section(2)
+		oSectionC := oReport:Section(1)
+		oSectionIte := oReport:Section(2)
 
-		oSect1:Init()
-		oSect2:Init()			
-		oSect1:PrintLine()
+		oSectionC:Init()
+		oSectionIte:Init()
+		oSectionC:PrintLine()
+
 
 	Endif
 
@@ -94,19 +99,30 @@ Static Function ReportPrint(oReport)
 		nCont++
 		oReport:IncMeter()
 		If (cNat <> (cTab)->C5_NUM)
-			oSect1:Finish()
-			cNat := (cTab)->C5_NUM
-			oSect1:Init()
-			oSect1:PrintLine()
+			oSectionC:Finish()
+			oSectionIte:Finish()
 
-		else
-			
-			oSect2:Init()
-			oSect2:PrintLine()
-			oSect2:Finish()
-Endif
+			cNat := (cTab)->C5_NUM
+
+			oSectionC:Init()
+			oSectionIte:Init()
+			oSectionC:PrintLine()
+
+			/* elseif (CFilial <> (cTab)->C5_FILIAL)
+			oSectionC:Finish()
+			oSectionIte:Finish()
+
+			CFilial := (cTab)->C5_FILIAL
+
+			oSectionC:Init()
+			oSectionIte:Init()
+			oSectionC:PrintLine()*/
+		Endif
+		oSectionIte:PrintLine()
 
 		If (nCont == nRegs)
+			oSectionC:Finish()
+			oSectionIte:Finish()
 			oReport:EndPage()
 		Endif
 
@@ -114,4 +130,4 @@ Endif
 	Enddo
 
 	(cTab)->(DbCloseArea())
-Return()
+	Return()
