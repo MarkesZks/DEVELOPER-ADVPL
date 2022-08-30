@@ -54,8 +54,9 @@ User Function DWCOMA07()
 		Endif
 
 		If (Len(aConteudo) > 0)
+			oArquivo:= FWFileWriter():New("C:\TOTVS12\Workspace\Exemplos\Exercicio_01\Arquivos\Relatorio.csv", .T.)
+			oArquivo:Create()
 			For nI := 1 To Len(aConteudo)
-
 				cQuery := "SELECT COUNT(A2_COD) REGS" + CRLF
 				cQuery += "FROM " + RetSQLName("SA2") + "" + CRLF
 				cQuery += "	WHERE A2_COD = '" + aConteudo[nI][nCod] + "'" + CRLF
@@ -81,8 +82,8 @@ User Function DWCOMA07()
 				Else
 					If (Val(aConteudo[nI][nEscolha]) == 4 .Or. Val(aConteudo[nI][nEscolha]) == 5)
 						DbSelectArea("SA2")
-						SA1->(DbSetOrder(1)) //A1_FILIAL+A1_COD+A1_LOJA
-						SA1->(DbSeek(xFilial("SA2") + PadR(aConteudo[nI][nCod], 6) + PadR(aConteudo[nI][nLoja], 2)))
+						SA2->(DbSetOrder(1)) //A1_FILIAL+A1_COD+A1_LOJA
+						SA2->(DbSeek(xFilial("SA2") + PadR(aConteudo[nI][nCod], 6) + PadR(aConteudo[nI][nLoja], 2)))
 					Endif
 
 					aFornecedor := {{"A2_COD"   , PadR(aConteudo[nI][nCod], 6) ,	Nil},;
@@ -99,19 +100,16 @@ User Function DWCOMA07()
 
 					If (lMsErroAuto)
 
-						oArquivo:= FWFileWriter():New("C:\TOTVS12\Workspace\Exemplos\Exercicio_01\Arquivos", .T.)
-							//oArquivo:Write((CLINHA :=CLINHA+"<-ERRO"))		
-							CLINHA:Write("<-ERRO")		
-						oArquivo:Close()
-	
 						MsgInfo("Erro na Importação", "Aviso")
+						oArquivo:Write(aConteudo[nI][nCod] +";" + PadR(aConteudo[nI][nCod], 6) + ";"+ aConteudo[nI][nNome]+ ";"+aConteudo[nI][nNomeRedu]+ ";"+aConteudo[nI][nEndereco] + ";"+ aConteudo[nI][nEndereco] + ";"+  AllTrim(aConteudo[nI][nEstad]) + ";"+ aConteudo[nI][nCodMun] + ";"+ aConteudo[nI][nMun] +";"+aConteudo[nI][nTipo]+ " <-ERRO"+CRLF )
 					Else
 						ConfirmSx8()
 						MsgInfo("Importado com Sucesso", "Aviso")
-
+							oArquivo:Write(aConteudo[nI][nCod] +";" + PadR(aConteudo[nI][nCod], 6) + ";"+ aConteudo[nI][nNome]+ ";"+aConteudo[nI][nNomeRedu]+ ";"+aConteudo[nI][nEndereco] + ";"+ aConteudo[nI][nEndereco] + ";"+  AllTrim(aConteudo[nI][nEstad]) + ";"+ aConteudo[nI][nCodMun] + ";"+ aConteudo[nI][nMun] +";"+aConteudo[nI][nTipo]+ " <-LINHA ESCRITA COM EXITO!"+CRLF )
 					Endif
 				Endif
 			Next nI
+			oArquivo:Close()
 		Else
 			MsgInfo("Nenhum registro encontrado.", "Aviso")
 		Endif
