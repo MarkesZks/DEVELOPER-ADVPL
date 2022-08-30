@@ -10,6 +10,8 @@ Static nCodMun  := 7
 Static nMun  := 8
 Static nTipo :=9
 Static nEscolha   := 10
+//Static nErro   := 11
+
 
 /*/{Protheus.doc} DWCOMA03
 Leitura de CSV - Fornecedores
@@ -25,6 +27,7 @@ User Function DWCOMA07()
 	Local cLinha    := ""
 	Local aConteudo := {}
 	Local nI        := 0
+//	Local nHandle := 0
 
 	Local nRegs     := 0
 	Local aFornecedor := {}
@@ -83,7 +86,7 @@ User Function DWCOMA07()
 					Endif
 
 					aFornecedor := {{"A2_COD"   , PadR(aConteudo[nI][nCod], 6) ,	Nil},;
-						{"A2_LOJA"   , aConteudo[nI][nLoja],	Nil},;
+						{"A2_LOJA"   , PadR(aConteudo[nI][nLoja],2),	Nil},;
 						{"A2_NOME"   , aConteudo[nI][nNome],	Nil},;
 						{"A2_NREDUZ" , aConteudo[nI][nNomeRedu],Nil},;
 						{"A2_END"    , aConteudo[nI][nEndereco],Nil},;
@@ -95,17 +98,24 @@ User Function DWCOMA07()
 					MsExecAuto({|x,y| MATA020(x,y)}, aFornecedor, Val(aConteudo[nI][nEscolha]))
 
 					If (lMsErroAuto)
-						MostraErro()
-						RollbackSx8()
+
+						oArquivo:= FWFileWriter():New("C:\TOTVS12\Workspace\Exemplos\Exercicio_01\Arquivos", .T.)
+							//oArquivo:Write((CLINHA :=CLINHA+"<-ERRO"))		
+							CLINHA:Write("<-ERRO")		
+						oArquivo:Close()
+	
+						MsgInfo("Erro na Importação", "Aviso")
 					Else
 						ConfirmSx8()
-						MsgInfo("Fornecedor incluído com sucesso.", "Aviso")
+						MsgInfo("Importado com Sucesso", "Aviso")
+
 					Endif
 				Endif
 			Next nI
 		Else
 			MsgInfo("Nenhum registro encontrado.", "Aviso")
 		Endif
+
 	Endif
 Return()
 
