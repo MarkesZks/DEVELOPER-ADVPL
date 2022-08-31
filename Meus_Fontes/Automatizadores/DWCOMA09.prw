@@ -1,4 +1,4 @@
-//Importaçao de Fornecedores 
+
 #INCLUDE "Protheus.ch"
 Static nNum		 := 1
 Static nForn     := 2
@@ -9,7 +9,6 @@ Static nQntd     := 6
 Static nPreco	 := 7
 Static nOpc	 	 := 8
 
-
 /*/{Protheus.doc} DWCOMA03
 Leitura de CSV - Fornecedores
 @type function
@@ -17,16 +16,16 @@ Leitura de CSV - Fornecedores
 @since 26/08/2022
 /*/
 
-User Function DWCOMA07()
+User Function DWCOMA09()
 	Local cArquivo  := ""
 	Local cLinha    := ""
 	Local lContinua := .T.
 	Local aConteudo := {}
-	Local aLinha    := {}
+	Local aPedidos := {}
 	Local nI        := 0
-//	Local nRegs     := 0
+//Local nRegs     := 0
 	Local oArquivo  := Nil
-	Local cUltVar  := ""
+
 
 	Private lMsErroAuto := .F.
 	Private cTab        := GetNextAlias()/*"SA2"*/
@@ -54,7 +53,8 @@ User Function DWCOMA07()
 			oArquivo:Create()
 			For nI := 1 To Len(aConteudo)
 
-				cQuery += "SELECT C7_FORNECE"+ CRLF
+				cQuery := "SELECT C7_NUMSC"+ CRLF
+				cQuery += ",C7_FORNECE" + CRLF
 				cQuery += ",C7_LOJA   " + CRLF
 				cQuery += ",C7_COND   " + CRLF
 				cQuery += ",C7_ITEM   " + CRLF
@@ -62,55 +62,41 @@ User Function DWCOMA07()
 				cQuery += ",C7_QUANT  " + CRLF
 				cQuery += ",C7_PRECO  " + CRLF
 				cQuery += ",C7_TOTAL FROM " + RetSQLName("SC7") + CRLF
-				cQuery += "	WHERE D_E_L_E_T_ = ''" + CRLF
+				cQuery += "WHERE D_E_L_E_T_= ''"+ CRLF
 				MPSysOpenQuery(cQuery, cTab)
 
 				DbSelectArea((cTab))
 				(cTab)->(DbGoTop())
 
-				nRegs := 0
-
 				While ((cTab)->(!Eof()))
-					nRegs := (cTab)->REGS
 
 					(cTab)->(DbSkip())
 				ENDDO
 
 				(cTab)->(DbCloseArea())
 
-				If ((nRegs == 1))
-					MsgInfo("Pedido de Compra já efetuado.", "Aviso")
-				Else
-					If (Val(aConteudo[nI][nEscolha]) == 4 .Or. Val(aConteudo[nI][nEscolha]) == 5)
-						DbSelectArea("SC7")
-						SA2->(DbSetOrder(1)) //A1_FILIAL+A1_COD+A1_LOJA
-						SA2->(DbSeek(xFilial("SC7") + PadR(aConteudo[nI][nForn], 6) + PadR(aConteudo[nI][nLoja], 2)))
-					Endif
+					aPedidos := {{"C7_NUMSC", aConteudo[nI][nNum] ,	Nil},;
+						{"C7_FORNECE"   ,  			aConteudo[nI][nForn],	Nil},;
+						{"C7_LOJA" ,     			  aConteudo[nI][nLoja],	Nil},;
+						{"C7_COND" ,      		  aConteudo[nI][nCondPag],Nil},;
+						{"C7_PRODUTO",			    aConteudo[nI][nProd],Nil},;
+						{"C7_QUANT", 			 			aConteudo[nI][nQntd],Nil},;
+						{"C7_PRECO",   			    aConteudo[nI][nPreco] ,Nil}}
 
-					aPedidos := {{"A2_COD"   , PadR(aConteudo[nI][nCod], 6) ,	Nil},;
-						{"A2_LOJA"   , PadR(aConteudo[nI][nLoja],2),	Nil},;
-						{"A2_NOME"   , aConteudo[nI][nNome],	Nil},;
-						{"A2_NREDUZ" , aConteudo[nI][nNomeRedu],Nil},;
-						{"A2_END"    , aConteudo[nI][nEndereco],Nil},;
-						{"A2_EST"    , AllTrim(aConteudo[nI][nEstad]),Nil},;
-						{"A2_COD_MUN", aConteudo[nI][nCodMun],Nil},;
-						{"A2_MUN"		 , aConteudo[nI][nMun] ,Nil},;
-						{"A2_TIPO"   , aConteudo[nI][nTipo],Nil}}
-
-					MsExecAuto({|x,y| MATA020(x,y)}, aPedidos, Val(aConteudo[nI][nEscolha]))
+					MsExecAuto({|x,y| MATA121(x,y)}, aPedidos, Val(aConteudo[nI][nOpc]),.F.)
 
 					If (lMsErroAuto)
-
 						MsgInfo("Erro na Importação", "Aviso")
-						oArquivo:Write(aConteudo[nI][nCod] +";" + PadR(aConteudo[nI][nCod], 6) + ";"+ aConteudo[nI][nNome]+ ";"+aConteudo[nI][nNomeRedu]+ ";"+aConteudo[nI][nEndereco] + ";"+ aConteudo[nI][nEndereco] + ";"+  AllTrim(aConteudo[nI][nEstad]) + ";"+ aConteudo[nI][nCodMun] + ";"+ aConteudo[nI][nMun] +";"+aConteudo[nI][nTipo]+ " <-ERRO"+CRLF )
+						oArquivo:Write(aConteudo[nI][nNum] +";" + (aConteudo[nI][nForn]) + ";"+ aConteudo[nI][nLoja]+ ";"+aConteudo[nI][nCondPag]+ ";"+aConteudo[nI][nProd] + ";"+ aConteudo[nI][nQntd] + ";"+  (aConteudo[nI][nPreco])+ " <-ERRO"+CRLF )
 					Else
 						ConfirmSx8()
 						MsgInfo("Importado com Sucesso", "Aviso")
-						oArquivo:Write(aConteudo[nI][nCod] +";" + PadR(aConteudo[nI][nCod], 6) + ";"+ aConteudo[nI][nNome]+ ";"+aConteudo[nI][nNomeRedu]+ ";"+aConteudo[nI][nEndereco] + ";"+ aConteudo[nI][nEndereco] + ";"+  AllTrim(aConteudo[nI][nEstad]) + ";"+ aConteudo[nI][nCodMun] + ";"+ aConteudo[nI][nMun] +";"+aConteudo[nI][nTipo]+ " <-LINHA ESCRITA COM EXITO!"+CRLF )
+						oArquivo:Write(aConteudo[nI][nNum] +";" + (aConteudo[nI][nForn]) + ";"+ aConteudo[nI][nLoja]+ ";"+aConteudo[nI][nCondPag]+ ";"+aConteudo[nI][nProd] + ";"+ aConteudo[nI][nQntd] + ";"+  (aConteudo[nI][nPreco])+" <-LINHA ESCRITA COM EXITO!"+CRLF )
 					Endif
-				Endif
+
 			Next nI
 			oArquivo:Close()
+
 		Else
 			MsgInfo("Nenhum registro encontrado.", "Aviso")
 		Endif
