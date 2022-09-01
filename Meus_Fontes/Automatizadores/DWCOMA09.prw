@@ -21,7 +21,9 @@ User Function DWCOMA09()
 	Local cLinha    := ""
 	Local lContinua := .T.
 	Local aConteudo := {}
-	Local aPedidos := {}
+	Local aItens := {}
+	Local aCabec := {}
+	Local aLinha := {}
 	Local nI        := 0
 //Local nRegs     := 0
 	Local oArquivo  := Nil
@@ -74,25 +76,26 @@ User Function DWCOMA09()
 				ENDDO
 
 				(cTab)->(DbCloseArea())
+				aCabec := {}
+				aCabec := {{"C7_NUMSC", aConteudo[nI][nNum] ,	Nil},;
+					{"C7_FORNECE"   ,aConteudo[nI][nForn],	Nil},;
+					{"C7_LOJA" , 		aConteudo[nI][nLoja],	Nil},;
+					{"C7_COND" ,		aConteudo[nI][nCondPag],Nil}}
+				aLinha= {}
+				aLinha := {	{"C7_PRODUTO", aConteudo[nI][nProd],Nil},;
+					{"C7_QUANT", 			 		Val(aConteudo[nI][nQntd])	,Nil},;
+					{"C7_PRECO",   			    Val(aConteudo[nI][nPreco]) ,Nil}}
+				aadd(aItens, aLinha)
 
-					aPedidos := {{"C7_NUMSC", aConteudo[nI][nNum] ,	Nil},;
-						{"C7_FORNECE"   ,  			aConteudo[nI][nForn],	Nil},;
-						{"C7_LOJA" ,     			  aConteudo[nI][nLoja],	Nil},;
-						{"C7_COND" ,      		  aConteudo[nI][nCondPag],Nil},;
-						{"C7_PRODUTO",			    aConteudo[nI][nProd],Nil},;
-						{"C7_QUANT", 			 			aConteudo[nI][nQntd],Nil},;
-						{"C7_PRECO",   			    aConteudo[nI][nPreco] ,Nil}}
-
-					MsExecAuto({|x,y| MATA121(x,y)}, aPedidos, Val(aConteudo[nI][nOpc]),.F.)
-
-					If (lMsErroAuto)
-						MsgInfo("Erro na Importação", "Aviso")
-						oArquivo:Write(aConteudo[nI][nNum] +";" + (aConteudo[nI][nForn]) + ";"+ aConteudo[nI][nLoja]+ ";"+aConteudo[nI][nCondPag]+ ";"+aConteudo[nI][nProd] + ";"+ aConteudo[nI][nQntd] + ";"+  (aConteudo[nI][nPreco])+ " <-ERRO"+CRLF )
-					Else
-						ConfirmSx8()
-						MsgInfo("Importado com Sucesso", "Aviso")
-						oArquivo:Write(aConteudo[nI][nNum] +";" + (aConteudo[nI][nForn]) + ";"+ aConteudo[nI][nLoja]+ ";"+aConteudo[nI][nCondPag]+ ";"+aConteudo[nI][nProd] + ";"+ aConteudo[nI][nQntd] + ";"+  (aConteudo[nI][nPreco])+" <-LINHA ESCRITA COM EXITO!"+CRLF )
-					Endif
+				MSExecAuto({|a, b, c, d| MATA120(a, b, c, d)}, aCabec, aItens, Val(aConteudo[nI][nOpc]), .F.)
+				If (lMsErroAuto)
+					MsgInfo("Erro na Importação", "Aviso")
+					oArquivo:Write(aConteudo[nI][nNum] +";" + (aConteudo[nI][nForn]) + ";"+ aConteudo[nI][nLoja]+ ";"+aConteudo[nI][nCondPag]+ ";"+aConteudo[nI][nProd] + ";"+ aConteudo[nI][nQntd] + ";"+  (aConteudo[nI][nPreco])+ " <-ERRO"+CRLF )
+				Else
+					ConfirmSx8()
+					MsgInfo("Importado com Sucesso", "Aviso")
+					oArquivo:Write(aConteudo[nI][nNum] +";" + (aConteudo[nI][nForn]) + ";"+ aConteudo[nI][nLoja]+ ";"+aConteudo[nI][nCondPag]+ ";"+aConteudo[nI][nProd] + ";"+ aConteudo[nI][nQntd] + ";"+  (aConteudo[nI][nPreco])+" <-LINHA ESCRITA COM EXITO!"+CRLF )
+				Endif
 
 			Next nI
 			oArquivo:Close()

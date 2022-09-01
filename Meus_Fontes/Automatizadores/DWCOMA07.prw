@@ -85,6 +85,7 @@ User Function DWCOMA07()
 						SA2->(DbSetOrder(1)) //A1_FILIAL+A1_COD+A1_LOJA
 						SA2->(DbSeek(xFilial("SA2") + PadR(aConteudo[nI][nCod], 6) + PadR(aConteudo[nI][nLoja], 2)))
 					Endif
+					
 
 					aFornecedor := {{"A2_COD"   , PadR(aConteudo[nI][nCod], 6) ,	Nil},;
 						{"A2_LOJA"   , PadR(aConteudo[nI][nLoja],2),	Nil},;
