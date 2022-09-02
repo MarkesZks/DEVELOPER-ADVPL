@@ -42,7 +42,8 @@ User Function DWCOMA04()
 				Enddo
 			Endif
 		Endif
-	Endif
+	Endif 
+	
 
 	If Len(aConteudo) > 0
 		For nI := 1 To Len(aConteudo)

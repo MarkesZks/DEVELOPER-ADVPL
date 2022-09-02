@@ -25,25 +25,23 @@ Static Function ReportDef(cTab)
 	oReport:SetPortrait()
 
 	oSection1 := TRSection():New(oReport)
-	TRCell():New(oSection1, "C7_NUMSC"   , , "Numero da SC"   , /*cPicture*/, TamSX3("C7_NUMSC")[1]+2   , /*lPixel*/, {||(cTab) ->C7_NUMSC})
+	TRCell():New(oSection1, "C7_NUM"   , , "Numero do PC"   , /*cPicture*/, TamSX3("C7_NUM")[1]   , /*lPixel*/, {||(cTab) ->C7_NUM})
+	TRCell():New(oSection1, "C7_EMISSAO"   , , "Data de Emissao"   , /*cPicture*/, TamSX3("C7_EMISSAO")[1]   , /*lPixel*/,{||(cTab) ->C7_EMISSAO})
 	TRCell():New(oSection1, "C7_FORNECE"   , , "Fornecedor"   , /*cPicture*/, TamSX3("C7_FORNECE")[1]   , /*lPixel*/, {||(cTab) ->C7_FORNECE})
-	TRCell():New(oSection1, "C7_LOJA"   , , "Loja"   , /*cPicture*/, TamSX3("C7_LOJA")[1]   , /*lPixel*/,{||(cTab) ->C7_LOJA})
+	TRCell():New(oSection1, "C7_LOJA"   , , "Loja"   , /*cPicture*/, TamSX3("C7_LOJA")[1]   , /*lPixel*/, {||(cTab) ->C7_LOJA})
 	TRCell():New(oSection1, "C7_COND"   , , "Condicao de Pag"   , /*cPicture*/, TamSX3("C7_COND")[1]   , /*lPixel*/, {||(cTab) ->C7_COND})
+	TRCell():New(oSection1, "C7_FILENT"   , , "Filial para Entrega "   , /*cPicture*/, TamSX3("C7_FILENT")[1]   , /*lPixel*/, {||(cTab) ->C7_FILENT})
 
 
 	oBreak1 := TRBreak():New(oSection1, {|| cNat}, )
-	TRFunction():New(oSection1:Cell("C7_NUMSC"), /*cID*/, "Numero da SC", oBreak1, /**/, /*cPicture*/, , .F./*lEndSection*/, .F./*lEndReport*/, .F./*lEndPage*/, /*oParent*/, /*bCondition*/, /*lDisable*/, /*bCanPrint*/)
-	TRFunction():New(oSection1:Cell("C7_FORNECE") , /*cID*/, "Fornecedor", oBreak1, /**/, , /*uFormula*/ , .F./*lEndSection*/, .F./*lEndReport*/, .F./*lEndPage*/)
-	TRFunction():New(oSection1:Cell("C7_LOJA") , /*cID*/, "Loja", oBreak1, /**/, , /*uFormula*/ , .F./*lEndSection*/, .F./*lEndReport*/, .F./*lEndPage*/)
-	TRFunction():New(oSection1:Cell("C7_COND") , /*cID*/, "Condicao de Pag", oBreak1, /**/, , /*uFormula*/ , .F./*lEndSection*/, .F./*lEndReport*/, .F./*lEndPage*/)
+	TRFunction():New(oSection1:Cell("C7_NUM"), /*cID*/, "Numero do PC", oBreak1, /**/, /*cPicture*/, , .F./*lEndSection*/, .F./*lEndReport*/, .F./*lEndPage*/, /*oParent*/, /*bCondition*/, /*lDisable*/, /*bCanPrint*/)
 
 
 	oSection2 := TRSection():New(oReport)
-	TRCell():New(oSection2, "C7_ITEM", , "Item"	, /*cPicture*/, TamSX3("C7_ITEM")[1]  , /*lPixel*/,{||(cTab) ->C7_ITEM})
-	TRCell():New(oSection2, "C7_PRODUTO"	, , "Produto"	, /*cPicture*/, TamSX3("C7_PRODUTO")[1]   , /*lPixel*/,{||(cTab) ->C7_PRODUTO})
-	TRCell():New(oSection2, "C7_QUANT", , "Quantidade"	, /*cPicture*/, TamSX3("C7_QUANT")[1]   , /*lPixel*/,{||(cTab) ->C7_QUANT})
-	TRCell():New(oSection2, "C7_PRECO"	, , "Valor"	, /*cPicture*/, TamSX3("C7_PRECO")[1]   , /*lPixel*/,{||(cTab) ->C7_PRECO})
-	TRCell():New(oSection2, "C7_TOTAL", , "TES"	, /*cPicture*/, TamSX3("C7_TOTAL")[1]   , /*lPixel*/,{||(cTab) ->C7_TOTAL})
+	TRCell():New(oSection2, "C7_PRODUTO", , "Codigo do Produto"	, /*cPicture*/, TamSX3("C7_PRODUTO")[1]  , /*lPixel*/,{||(cTab) ->C7_PRODUTO})
+	TRCell():New(oSection2, "C7_QUANT"	, , "Quantidade"	, /*cPicture*/, TamSX3("C7_QUANT")[1]   , /*lPixel*/,{||(cTab) ->C7_QUANT})
+	TRCell():New(oSection2, "C7_PRECO", , "Preço Uni"	, /*cPicture*/, TamSX3("C7_PRECO")[1]   , /*lPixel*/,{||(cTab) ->C7_PRECO})
+	TRCell():New(oSection2, "C7_TOTAL", , "Preço Total"	, /*cPicture*/, TamSX3("C7_TOTAL")[1]   , /*lPixel*/,{||(cTab) ->C7_TOTAL})
 
 
 
@@ -58,16 +56,18 @@ Static Function ReportPrint(oReport)
 
 	Default oReport := Nil
 
-	cQuery := "SELECT C7_NUMSC"+ CRLF
+	cQuery := "SELECT C7_NUM"+ CRLF
+	cQuery += ",C7_EMISSAO" + CRLF
 	cQuery += ",C7_FORNECE" + CRLF
 	cQuery += ",C7_LOJA   " + CRLF
 	cQuery += ",C7_COND   " + CRLF
-	cQuery += ",C7_ITEM   " + CRLF
+	cQuery += ",C7_FILENT   " + CRLF
 	cQuery += ",C7_PRODUTO" + CRLF
 	cQuery += ",C7_QUANT  " + CRLF
 	cQuery += ",C7_PRECO  " + CRLF
 	cQuery += ",C7_TOTAL FROM " + RetSQLName("SC7") + CRLF
 	cQuery += "WHERE D_E_L_E_T_= ''"+ CRLF
+	cQuery += "ORDER BY C7_NUM ASC "+ CRLF
 
 	MPSysOpenQuery(cQuery, (cTab))
 	DbSelectArea(cTab)
@@ -78,7 +78,7 @@ Static Function ReportPrint(oReport)
 	If (!Empty(nRegs))
 		oReport:SetMeter(nRegs)
 
-		cNat := (cTab)->C7_NUMSC
+		cNat := (cTab)->C7_NUM
 
 		oSection1 := oReport:Section(1)
 		oSection2 := oReport:Section(2)
@@ -94,14 +94,19 @@ Static Function ReportPrint(oReport)
 		oReport:IncMeter()
 
 
-		If (cNat <> (cTab)->C7_NUMSC)
+		If (cNat <> (cTab)->C7_NUM)//
+			oSection2:Finish()
 			oSection1:Finish()
-			cNat := (cTab)->C7_NUMSC
+
 			oSection1:Init()
+
 			oSection1:PrintLine()
-			Endif
-			
+
+			oSection2:Init()
+			cNat := (cTab)->C7_NUM
+		Endif
 		oSection2:PrintLine()
+
 		If (nCont == nRegs)
 			oSection1:Finish()
 			oSection2:Finish()

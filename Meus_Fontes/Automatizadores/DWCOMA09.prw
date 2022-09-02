@@ -1,13 +1,18 @@
 
 #INCLUDE "Protheus.ch"
-Static nNum		 := 1
-Static nForn     := 2
-Static nLoja     := 3
-Static nCondPag	 := 4
-Static nProd     := 5
-Static nQntd     := 6
-Static nPreco	 := 7
-Static nOpc	 	 := 8
+Static nNum    :=1
+Static nEmis   :=2
+Static nForn   :=3
+Static nLoja   :=4
+Static nCondPag:=5
+Static nFilial :=6
+
+Static nProd  :=7
+Static nItem :=8
+Static nQntd  :=9
+Static nPreco :=10
+Static nPrecoT:=11
+Static nOpc	  :=12
 
 /*/{Protheus.doc} DWCOMA03
 Leitura de CSV - Fornecedores
@@ -19,6 +24,7 @@ Leitura de CSV - Fornecedores
 User Function DWCOMA09()
 	Local cArquivo  := ""
 	Local cLinha    := ""
+	Local cUltVar   := ""
 	Local lContinua := .T.
 	Local aConteudo := {}
 	Local aItens := {}
@@ -54,57 +60,62 @@ User Function DWCOMA09()
 			oArquivo:= FWFileWriter():New("C:\TOTVS12\Workspace\Exemplos\Exercicio_01\Arquivos\Relatorio_Pedido_C.csv", .T.)
 			oArquivo:Create()
 			For nI := 1 To Len(aConteudo)
-
-				cQuery := "SELECT C7_NUMSC"+ CRLF
-				cQuery += ",C7_FORNECE" + CRLF
-				cQuery += ",C7_LOJA   " + CRLF
-				cQuery += ",C7_COND   " + CRLF
-				cQuery += ",C7_ITEM   " + CRLF
-				cQuery += ",C7_PRODUTO" + CRLF
-				cQuery += ",C7_QUANT  " + CRLF
-				cQuery += ",C7_PRECO  " + CRLF
-				cQuery += ",C7_TOTAL FROM " + RetSQLName("SC7") + CRLF
-				cQuery += "WHERE D_E_L_E_T_= ''"+ CRLF
-				MPSysOpenQuery(cQuery, cTab)
-
-				DbSelectArea((cTab))
-				(cTab)->(DbGoTop())
-
-				While ((cTab)->(!Eof()))
-
-					(cTab)->(DbSkip())
-				ENDDO
-
-				(cTab)->(DbCloseArea())
-				aCabec := {}
-				aCabec := {{"C7_NUMSC", aConteudo[nI][nNum] ,	Nil},;
-					{"C7_FORNECE"   ,aConteudo[nI][nForn],	Nil},;
-					{"C7_LOJA" , 		aConteudo[nI][nLoja],	Nil},;
-					{"C7_COND" ,		aConteudo[nI][nCondPag],Nil}}
-				aLinha= {}
-				aLinha := {	{"C7_PRODUTO", aConteudo[nI][nProd],Nil},;
-					{"C7_QUANT", 			 		Val(aConteudo[nI][nQntd])	,Nil},;
-					{"C7_PRECO",   			    Val(aConteudo[nI][nPreco]) ,Nil}}
-				aadd(aItens, aLinha)
-
-				MSExecAuto({|a, b, c, d| MATA120(a, b, c, d)}, aCabec, aItens, Val(aConteudo[nI][nOpc]), .F.)
-				If (lMsErroAuto)
-					MsgInfo("Erro na Importação", "Aviso")
-					oArquivo:Write(aConteudo[nI][nNum] +";" + (aConteudo[nI][nForn]) + ";"+ aConteudo[nI][nLoja]+ ";"+aConteudo[nI][nCondPag]+ ";"+aConteudo[nI][nProd] + ";"+ aConteudo[nI][nQntd] + ";"+  (aConteudo[nI][nPreco])+ " <-ERRO"+CRLF )
+				If aConteudo[nI][nNum] == cUltVar
+					aLinha := {}
+					aadd(aLinha,{"C7_PRODUTO",  aConteudo[nI][nProd], Nil}) // char; tam: 15
+					aadd(aLinha,{"C7_QUANT",  Val(aConteudo[nI][nQntd]), Nil}) //num; tam: 12
+					aadd(aLinha,{"C7_PRECO",  Val(aConteudo[nI][nPreco]), Nil}) //num; tam: 14
+					aadd(aItens, aLinha)
 				Else
-					ConfirmSx8()
-					MsgInfo("Importado com Sucesso", "Aviso")
-					oArquivo:Write(aConteudo[nI][nNum] +";" + (aConteudo[nI][nForn]) + ";"+ aConteudo[nI][nLoja]+ ";"+aConteudo[nI][nCondPag]+ ";"+aConteudo[nI][nProd] + ";"+ aConteudo[nI][nQntd] + ";"+  (aConteudo[nI][nPreco])+" <-LINHA ESCRITA COM EXITO!"+CRLF )
+
+					if Len(aLinha) > 0
+						MSExecAuto({|a,b,c,d,e| MATA120(a,b,c,d,e)}, 1 , aCabec, aItens,  nOpcx, .F.)
+						If (lMsErroAuto) //se houver erro
+							MostraErro()
+						Else
+							MsgInfo("Pedido de compra incluido com sucesso.", "Aviso")
+						Endif
+					Endif
+
+					cUltVar := aConteudo[nI][nNum]
+					nOpcX := Val(aConteudo[nI][nOpc])
+					aCabec   := {}
+					aItens   := {}
+					aLinha   := {}
+					aadd(aCabec,{"C7_FILIAL", xFilial("SC7"), Nil})
+					aadd(aCabec,{"C7_NUM", aConteudo[nI][nNum], Nil}) //char; tam: 6
+					aadd(aCabec,{"C7_EMISSAO" , STod(aConteudo[nI][nData]), Nil}) // data; tam 8 // DTos() transforma data em string
+					aadd(aCabec,{"C7_FORNECE", aConteudo[nI][nForn], Nil})//char; tam: 6
+					aadd(aCabec,{"C7_LOJA", aConteudo[nI][nLoja], Nil})//char; tam: 2
+					aadd(aCabec,{"C7_COND",  aConteudo[nI][nCondPag], Nil})//char; tam: 3
+					aadd(aCabec,{"C7_FILENT" , aConteudo[nI][nFilEnt]}) //char; tam 2
+
+					aLinha := {}
+					aadd(aLinha,{"C7_PRODUTO",  aConteudo[nI][nProd], Nil}) // char; tam: 15
+					aadd(aLinha,{"C7_QUANT",  Val(aConteudo[nI][nQntd]), Nil}) //num; tam: 12
+					aadd(aLinha,{"C7_PRECO",  Val(aConteudo[nI][nPreco]), Nil}) //num; tam: 14
+					aadd(aItens, aLinha)
+
 				Endif
 
 			Next nI
-			oArquivo:Close()
 
-		Else
-			MsgInfo("Nenhum registro encontrado.", "Aviso")
+			MSExecAuto({|a,b,c,d,e| MATA120(a,b,c,d,e)}, 1 , aCabec, aItens,  nOpcX, .F.) //erro aqui
+
+					If (lMsErroAuto)
+						MsgInfo("Erro na Importação", "Aviso")
+						oArquivo:Write(aConteudo[nI][nNum] +";" + (aConteudo[nI][nEmis]) + ";"+ aConteudo[nI][nForn]+ ";"+aConteudo[nI][nLoja]+ ";"+aConteudo[nI][nCondPag] + ";"+ aConteudo[nI][nFilial] + ";"+  (aConteudo[nI][nProd])+";"+  (aConteudo[nI][nQntd])+";"+  (aConteudo[nI][nPreco])+ ";"+  (aConteudo[nI][nPrecoT])+ " <-ERRO"+CRLF )
+					Else
+						ConfirmSx8()
+						MsgInfo("Importado com Sucesso", "Aviso")
+						oArquivo:Write(aConteudo[nI][nNum] +";" + (aConteudo[nI][nEmis]) + ";"+ aConteudo[nI][nForn]+ ";"+aConteudo[nI][nLoja]+ ";"+aConteudo[nI][nCondPag] + ";"+ aConteudo[nI][nFilial] + ";"+  (aConteudo[nI][nProd])+";"+  (aConteudo[nI][nQntd])+";"+  (aConteudo[nI][nPreco])+ ";"+  (aConteudo[nI][nPrecoT])+ "  <-LINHA ESCRITA COM EXITO!"+CRLF )
+				Endif
 		Endif
-
+		oArquivo:Close()
+	Else
+		MsgInfo("Nenhum registro encontrado.", "Aviso")
 	Endif
+	
 Return()
 
 

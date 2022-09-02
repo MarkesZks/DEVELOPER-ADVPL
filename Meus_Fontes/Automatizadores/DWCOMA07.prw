@@ -97,7 +97,7 @@ User Function DWCOMA07()
 						{"A2_MUN"		 , aConteudo[nI][nMun] ,Nil},;
 						{"A2_TIPO"   , aConteudo[nI][nTipo],Nil}}
 
-					MsExecAuto({|x,y| MATA020(x,y)}, aFornecedor, Val(aConteudo[nI][nEscolha]))
+					MsExecAuto({|x,y| MATA020(x,y)}, aFornecedor, Val(aConteudo[nI--][nEscolha]))
 
 					If (lMsErroAuto)
 
