@@ -33,16 +33,16 @@ Static Function ReportDef(cTab)
 	TRCell():New(oSection1, "C7_FILENT"   , , "Filial para Entrega "   , /*cPicture*/, TamSX3("C7_FILENT")[1]   , /*lPixel*/, {||(cTab) ->C7_FILENT})
 
 
-	oBreak1 := TRBreak():New(oSection1, {|| cNat}, )
-	TRFunction():New(oSection1:Cell("C7_NUM"), /*cID*/, "Numero do PC", oBreak1, /**/, /*cPicture*/, , .F./*lEndSection*/, .F./*lEndReport*/, .F./*lEndPage*/, /*oParent*/, /*bCondition*/, /*lDisable*/, /*bCanPrint*/)
-
-
 	oSection2 := TRSection():New(oReport)
 	TRCell():New(oSection2, "C7_PRODUTO", , "Codigo do Produto"	, /*cPicture*/, TamSX3("C7_PRODUTO")[1]  , /*lPixel*/,{||(cTab) ->C7_PRODUTO})
 	TRCell():New(oSection2, "C7_QUANT"	, , "Quantidade"	, /*cPicture*/, TamSX3("C7_QUANT")[1]   , /*lPixel*/,{||(cTab) ->C7_QUANT})
 	TRCell():New(oSection2, "C7_PRECO", , "Preço Uni"	, /*cPicture*/, TamSX3("C7_PRECO")[1]   , /*lPixel*/,{||(cTab) ->C7_PRECO})
 	TRCell():New(oSection2, "C7_TOTAL", , "Preço Total"	, /*cPicture*/, TamSX3("C7_TOTAL")[1]   , /*lPixel*/,{||(cTab) ->C7_TOTAL})
 
+	oBreak1 := TRBreak():New(oSection2, {|| cNat}, )
+	TRFunction():New(oSection2:Cell("C7_QUANT"), , "SUM", oBreak1, /**/, /*cPicture*/, , .T./*lEndSection*/, .F./*lEndReport*/, .F./*lEndPage*/, /*oParent*/, /*bCondition*/, /*lDisable*/, /*bCanPrint*/)
+	TRFunction():New(oSection2:Cell("C7_PRECO"), , "SUM", oBreak1, /**/, /*cPicture*/, , .T./*lEndSection*/, .F./*lEndReport*/, .F./*lEndPage*/, /*oParent*/, /*bCondition*/, /*lDisable*/, /*bCanPrint*/)
+	TRFunction():New(oSection2:Cell("C7_TOTAL"), , "SUM", oBreak1, /**/, /*cPicture*/, , .T./*lEndSection*/, .F./*lEndReport*/, .F./*lEndPage*/, /*oParent*/, /*bCondition*/, /*lDisable*/, /*bCanPrint*/)
 
 
 Return(oReport)
