@@ -2,98 +2,90 @@
 #Include "FWMVCDef.ch"
 
 /*/{Protheus.doc} MVCOMA01
-Rotina de Grupos de AprovaÃ§Ã£o.
+Pedido de Venda
 @type function
-@author Felipe Alves
+@author Gabriel Marques
 @since 11/06/2021
 /*/
 
 User Function MVCOMA01()
-	Local oBrowse := Nil
+	Local aArea := GetNextAlias()
+	Local oBrowseSZ1
+	//Local oBrowseSZ2
 
-	oBrowse := BrowseDef()
-	oBrowse:Activate()
+	oBrowseSZ1 := FwmBrowse():New()
+	//oBrowseSZ2 := FwmBrowse():New()
+	//Passo como parametro a tabala que eu quero mostrar no browse
+	oBrowseSZ1:SetAlias("SZ1")
+
+	oBrowseSZ1:SetDescription("Pré Pedido vendas - MVC")
+
+	oBrowseSZ1:Activate()
+
+	RestArea(aArea)
+
 Return()
 
-Static Function BrowseDef()
-	Local oBrowse := Nil
 
-	oBrowse := FWMBrowse():New()
-	oBrowse:SetDescription(OemToAnsi("Grupos de AprovaÃ§Ã£o"))
-	oBrowse:SetAlias("SZ1")
-Return(oBrowse)
-
-
-
-Static Function MenuDef()
+Static Function MenuDef() /*Uma função MenuDef define as operações quer serão realizadas pela aplicação, tais como inclusão,
+	alteração, exclusão, etc.*/
 	Local aRotina := {}
 
 	Add Option aRotina Title OemToAnsi("Visualizar") Action "VIEWDEF.MVCOMA01" Operation 2 Access 0
 	Add Option aRotina Title OemToAnsi("Incluir")    Action "VIEWDEF.MVCOMA01" Operation 3 Access 0
 	Add Option aRotina Title OemToAnsi("Alterar")    Action "VIEWDEF.MVCOMA01" Operation 4 Access 0
 	Add Option aRotina Title OemToAnsi("Excluir")    Action "VIEWDEF.MVCOMA01" Operation 5 Access 0
-Return(aRotina)
+Return aRotina
 
 
-Static Function ModelDef()
-	Local oModel := Nil
+
+Static Function ModelDef() //Funçao modelo
+	Local oModel := Nil //Objeto modelo
 	Local oSZ1 := Nil
 	Local oSZ2 := Nil
 
-	oSZ1 := FWFormStruct(1, "SZ7")
-	oSZ2 := FWFormStruct(1, "SZ8")
+	oSZ1 := FWFormStruct(1, "SZ1")
+	oSZ2 := FWFormStruct(1, "SZ2")
 
-	oModel := MPFormModel():New("FINA03GRP", /*bPre*/, {|oModel| FINA03Ok(oModel)}/*bPost*/)
+	oModel := MPFormModel():New("COMA01PV", /*bPre*/, /*bPost*/, )
 
-	{ | oModel | JOK01CTRM( oModel ) }
+	oModel:AddFields("SZ1MASTER",,oSZ1)
+	oModel:AddGrid("SZ2DETAIL", "SZ1MASTER", oSZ2)
+	oModel:SetPrimaryKey({'Z1_FILIAL','Z1_CODIGO'})
+	oModel:GetModel("SZ2DETAIL"):SetUniqueLine({"Z2_PRODUTO"})
 
-	oModel:AddFields("SZ7MASTER", , oSZ1)
-	oModel:AddGrid("SZ8DETAIL", "SZ7MASTER", oSZ2)
-	oModel:SetPrimaryKey({"Z7_FILIAL", "Z7_COD", "Z7_CCUSTO", "Z7_NATUREZ", "Z7_TIPO"})
-	oModel:GetModel("SZ8DETAIL"):SetUniqueLine({"Z8_CODAPR"})
-	oModel:SetRelation("SZ8DETAIL", {{"Z8_FILIAL", "xFilial('SZ7')"}, {"Z8_COD", "Z7_COD"}}, oSZ8->(IndexKey(1)))
-	oModel:SetDescription(OemToAnsi("Grupos de AprovaÃ§Ã£o"))
-	oModel:GetModel("SZ7MASTER"):SetDescription(OemToAnsi("Grupos de AprovaÃ§Ã£o"))
-	oModel:GetModel("SZ8DETAIL"):SetDescription(OemToAnsi("Aprovadores"))
-Return(oModel)
+	oModel:SetRelation("SZ2DETAIL", {{"Z2_FILIAL", "xFilial('SZ2')"}, {"Z2_ITEM", "Z2_PRODUTO"}}, SZ2->(IndexKey(1)))
+
+		oModel:SetDescription(OemToAnsi("Modelo de dados do Pré pedido de venda"))
+
+	oModel:GetModel("SZ1MASTER"):SetDescription(OemToAnsi("Cabecalho Pré pedido de venda"))
+	oModel:GetModel("SZ2DETAIL"):SetDescription(OemToAnsi("Linha Pré pedido de venda"))
+
+Return (oModel)
 
 
 
 Static Function ViewDef()
+
 	Local oModel := Nil
 	Local oView := Nil
 	Local oSZ1 := Nil
 	Local oSZ2 := Nil
 
+
 	oModel := ModelDef()
 	oView := FWFormView():New()
 	oSZ1 := FWFormStruct(2, "SZ1")
-	oSZ2 := FWFormStruct(2, "SZ2", {|x| !(AllTrim(x) $ "Z8_FILIAL|Z8_COD|")})
+	oSZ2 := FWFormStruct(2, "SZ2")
 
 	oView:SetModel(oModel)
-	oView:AddField("FIELD_SZ7", oSZ1, "SZ7MASTER")
-	oView:AddGrid("GRID_SZ8", oSZ2, "SZ8DETAIL")
-	oView:CreateHorizontalBox("TELA01", 20)
-	oView:CreateHorizontalBox("TELA02", 80)
-	oView:SetOwnerView("FIELD_SZ7", "TELA01")
-	oView:SetOwnerView("GRID_SZ8", "TELA02")
-	oView:AddIncrementField("GRID_SZ8", "Z8_ITEM")
-Return(oView)
+	oView:AddField("FIELD_SZ1", oSZ1, "SZ1MASTER")
+	oView:AddGrid("GRID_SZ2", oSZ2, "SZ2DETAIL")
+	oView:CreateHorizontalBox("TELA01",20)
+	oView:CreateHorizontalBox("TELA02",80)
+	oView:SetOwnerView("FIELD_SZ1", "TELA01")
+	oView:SetOwnerView("GRID_SZ2", "TELA02")
+	oView:AddIncrementField("GRID_SZ2", "Z2_ITEM")
 
 
-
-Static Function FINA03Ok(oModel)
-	Local lRet := .T.
-	Local oModelSZ7 := oModel:GetModel("SZ7MASTER")
-	Local nOper := oModel:GetOperation()
-	Local aArea := GetArea()
-	Local aAreaSZ7 := oSZ7->(GetArea())
-
-	If (nOper == MODEL_OPERATION_INSERT)
-		lRet := ExistChav("SZ1", oModelSZ7:GetValue("Z7_CCUSTO") + oModelSZ7:GetValue("Z7_NATUREZ") + oModelSZ7:GetValue("Z7_TIPO"), 3)
-	Endif
-
-	RestArea(aAreaSZ7)
-	RestArea(aArea)
-Return(lRet)
-
+Return (oView)
