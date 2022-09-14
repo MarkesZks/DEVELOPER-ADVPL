@@ -93,6 +93,24 @@ User Function Import()
 	aCabec   := {}
 	aItens   := {}
 	aLinha   := {}
+
+	cQuery := "SELECT Z1_CODIGO"+ CRLF
+	cQuery += ",Z1_TIPO" + CRLF
+	cQuery += ",Z1_CLIENTE" + CRLF
+	cQuery += ",Z1_LOJACLI   " + CRLF
+	cQuery += ",Z1_TIPOPED   " + CRLF
+	cQuery += ",Z1_CONDPAG FROM " + RetSQLName("SZ1") + CRLF
+	cQuery += "WHERE D_E_L_E_T_= ''"+ CRLF
+
+cQuery := "SELECT Z2_ITEM"+ CRLF
+	cQuery += ",Z2_PRODUTO" + CRLF
+	cQuery += ",Z2_QTDVEN" + CRLF
+	cQuery += ",Z2_PRECO   " + CRLF
+	cQuery += ",Z2_TES FROM " + RetSQLName("SZ2") + CRLF
+	cQuery += "WHERE D_E_L_E_T_= ''"+ CRLF
+
+
+
 	aadd(aCabec, {"C5_NUM","Z1_CODIGO", Nil})
 	aadd(aCabec, {"C5_TIPOCLI","Z1_TIPO",       Nil})
 	aadd(aCabec, {"C5_CLIENTE","Z1_CLIENTE",    Nil})
@@ -113,7 +131,6 @@ User Function Import()
 	If (lMsErroAuto)
 		MsgInfo("Erro na Importação", "Aviso")
 	Else
-		ConfirmSx8()
 		MsgInfo("Importado com Sucesso", "Aviso")
 	Endif
 Return()
