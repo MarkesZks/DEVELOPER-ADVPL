@@ -96,17 +96,27 @@ User Function Import()
 	aItens   := {}
 	aLinha   := {}
 	cUltVar := Nil
+	SC6 :=Nil
+	SC5 :=Nil
+
 	nI := 0
 
-	cQuery := "SELECT Z2_ITEM"+ CRLF
-	cQuery += ",Z2_PRODUTO" + CRLF
-	cQuery += ",Z2_QTDVEN" + CRLF
-	cQuery += ",Z2_PRECO   " + CRLF
-	cQuery += ",Z2_TES FROM " + RetSQLName("SZ2") + CRLF
+	cQuery := "SELECT C6_ITEM"+ CRLF
+	cQuery += ",C6_PRODUTO" + CRLF
+	cQuery += ",C6_QTDVEN" + CRLF
+	cQuery += ",C6_PRCVEN   " + CRLF
+	cQuery += ",C6_TES FROM " + RetSQLName("SC6") + CRLF
+	cQuery += "WHERE D_E_L_E_T_= ''"+ CRLF
+
+	cQuery := "SELECT C5_NUM"+ CRLF
+	cQuery += ",C5_CLIENTE" + CRLF
+	cQuery += ",C5_LOJACLI" + CRLF
+	cQuery += ",C5_TIPO   " + CRLF
+	cQuery += ",C5_TIPOPED   " + CRLF
+	cQuery += ",C5_CONDPAG FROM " + RetSQLName("SC5") + CRLF
 	cQuery += "WHERE D_E_L_E_T_= ''"+ CRLF
 
 	DbSelectArea("SZ2")
-
 	SZ2->(DbSetOrder(1))
 	SZ2->(DbSeek(xFilial("SZ2") +(SZ2->Z2_ITEM)))
 
@@ -115,11 +125,11 @@ User Function Import()
 
 			If (SZ2->Z2_ITEM) == cUltVar
 				aLinha := {}
-				aadd(aLinha,{"C6_ITEM",(SZ2->Z2_ITEM), Nil})
-				aadd(aLinha,{"C6_PRODUTO", (SZ2->Z2_PRODUTO),Nil})
-				aadd(aLinha,{"C6_QTDVEN", (SZ2->Z2_QTDVEN), Nil})
-				aadd(aLinha,{"C6_PRCVEN",  (SZ2->Z2_PRCVEN), Nil})
-				aadd(aLinha,{"C6_TES",(SZ2->Z2_TES), Nil})
+				aadd(aLinha,{(SC6->C6_ITEM),(SZ2->Z2_ITEM), Nil})
+				aadd(aLinha,{(SC6->C6_PRODUTO), (SZ2->Z2_PRODUTO),Nil})
+				aadd(aLinha,{(SC6->C6_QTDVEN), (SZ2->Z2_QTDVEN), Nil})
+				aadd(aLinha,{(SC6->C6_PRCVEN),  (SZ2->Z2_PRCVEN), Nil})
+				aadd(aLinha,{(SC6->C6_TES),(SZ2->Z2_TES), Nil})
 				aadd(aItens, aLinha)
 			else
 				if Len(aLinha) > 0
@@ -135,18 +145,18 @@ User Function Import()
 				aCabec   := {}
 				aItens   := {}
 				aLinha   := {}
-				aadd(aCabec, {"C5_NUM",			(SZ1->Z1_CODIGO)	, Nil})
-				aadd(aCabec, {"C5_CLIENTE",	(SZ1->Z1_CLIENTE)	, Nil})
-				aadd(aCabec, {"C5_LOJACLI", (SZ1->Z1_LOJACLI)	, Nil})
-				aadd(aCabec, {"C5_TIPO", 		(SZ1->Z1_TIPOPED)	, Nil})
-				aadd(aCabec, {"C5_CONDPAG", (SZ1->Z1_CONDPAG)	, Nil})
-				aadd(aCabec, {"C5_TIPOPED",	(SZ1->Z1_TIPO)	  , Nil})
+				aadd(aCabec, {	(SC5->C5_NUM)		,		(SZ1->Z1_CODIGO)	, Nil})
+				aadd(aCabec, {	(SC5->C5_CLIENTE)	,	(SZ1->Z1_CLIENTE)	, Nil})
+				aadd(aCabec, {	(SC5->C5_LOJACLI)	, (SZ1->Z1_LOJACLI)	, Nil})
+				aadd(aCabec, {	(SC5->C5_TIPO)		, (SZ1->Z1_TIPO)	, Nil})
+				aadd(aCabec, {	(SC5->C5_CONDPAG)	, (SZ1->Z1_CONDPAG)	, Nil})
+				aadd(aCabec, {	(SC5->C5_TIPOPED)	,	(SZ1->Z1_TIPOPED)	  , Nil})
 				aLinha := {}
-				aadd(aLinha,{"C6_ITEM",			(SZ2->Z2_ITEM), Nil})
-				aadd(aLinha,{"C6_PRODUTO",  (SZ2->Z2_PRODUTO)	,Nil})
-				aadd(aLinha,{"C6_QTDVEN",   (SZ2->Z2_QTDVEN), Nil})
-				aadd(aLinha,{"C6_PRCVEN",   (SZ2->Z2_PRCVEN), Nil})
-				aadd(aLinha,{"C6_TES",		  (SZ2->Z2_TES)	  , Nil})
+			aadd(aLinha,{(SC6->C6_ITEM),(SZ2->Z2_ITEM), Nil})
+				aadd(aLinha,{(SC6->C6_PRODUTO), (SZ2->Z2_PRODUTO),Nil})
+				aadd(aLinha,{(SC6->C6_QTDVEN), (SZ2->Z2_QTDVEN), Nil})
+				aadd(aLinha,{(SC6->C6_PRCVEN),  (SZ2->Z2_PRCVEN), Nil})
+				aadd(aLinha,{(SC6->C6_TES),(SZ2->Z2_TES), Nil})
 				aadd(aItens, aLinha)
 			Endif
 		//Enddo 
