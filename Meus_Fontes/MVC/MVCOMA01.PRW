@@ -90,15 +90,13 @@ Return (oView)
 
 
 User Function Import()
-
-	Local nRegs   := 0
-	Local nCont   := 0
 	Local cQuery := ""
 	Private lMsErroAuto := .F.
 	aCabec   := {}
 	aItens   := {}
 	aLinha   := {}
-
+	cUltVar := Nil
+	nI := 0
 
 	cQuery := "SELECT Z2_ITEM"+ CRLF
 	cQuery += ",Z2_PRODUTO" + CRLF
@@ -110,45 +108,55 @@ User Function Import()
 	DbSelectArea("SZ2")
 
 	SZ2->(DbSetOrder(1))
+	SZ2->(DbSeek(xFilial("SZ2") +(SZ2->Z2_ITEM)))
 
-	SZ2->(DbSeek("01"+"000001"))
 
-	If(!Empty(nRegs) )
-		aadd(aCabec, {"C5_NUM",SZ1->Z1_CODIGO, Nil})
-		aadd(aCabec, {"C5_TIPOCLI",SZ1->Z1_TIPO,       Nil})
-		aadd(aCabec, {"C5_CLIENTE",SZ1->Z1_CLIENTE,    Nil})
-		aadd(aCabec, {"C5_LOJACLI", SZ1->Z1_LOJACLI,   Nil})
-		aadd(aCabec, {"C5_TIPO", SZ1->Z1_TIPOPED,   Nil})
-		aadd(aCabec, {"C5_CONDPAG", SZ1->Z1_CONDPAG, Nil})
-	Endif
-	while (SZ2->(!Eof()))
-		nCont++
-		aLinha := {}
-		aadd(aLinha,{"C6_ITEM",SZ2->Z2_ITEM, Nil})
-		aadd(aLinha,{"C6_PRODUTO", SZ2->Z2_PRODUTO,Nil})
-		aadd(aLinha,{"C6_QTDVEN", SZ2->Z2_QTDVEN, Nil})
-		aadd(aLinha,{"C6_PRCVEN",  SZ2->Z2_PRCVEN, Nil})
-		aadd(aLinha,{"C6_TES",SZ2->Z2_TES, Nil})
-		aadd(aItens, aLinha)
+		//While (SZ2->(!Eof()))
+
+			If (SZ2->Z2_ITEM) == cUltVar
+				aLinha := {}
+				aadd(aLinha,{"C6_ITEM",(SZ2->Z2_ITEM), Nil})
+				aadd(aLinha,{"C6_PRODUTO", (SZ2->Z2_PRODUTO),Nil})
+				aadd(aLinha,{"C6_QTDVEN", (SZ2->Z2_QTDVEN), Nil})
+				aadd(aLinha,{"C6_PRCVEN",  (SZ2->Z2_PRCVEN), Nil})
+				aadd(aLinha,{"C6_TES",(SZ2->Z2_TES), Nil})
+				aadd(aItens, aLinha)
+			else
+				if Len(aLinha) > 0
+					nOpcX := 3
+					MSExecAuto({|a, b, c, d| MATA410(a, b, c, d)}, aCabec, aItens, nOpcX, .F.)
+					If (lMsErroAuto) //se houver erro
+						MostraErro()
+					Else
+						MsgInfo("Pedido de Venda incluido com sucesso.", "Aviso")
+					Endif
+				Endif
+				cUltVar := (SZ2->Z2_ITEM)
+				aCabec   := {}
+				aItens   := {}
+				aLinha   := {}
+				aadd(aCabec, {"C5_NUM",			(SZ1->Z1_CODIGO)	, Nil})
+				aadd(aCabec, {"C5_CLIENTE",	(SZ1->Z1_CLIENTE)	, Nil})
+				aadd(aCabec, {"C5_LOJACLI", (SZ1->Z1_LOJACLI)	, Nil})
+				aadd(aCabec, {"C5_TIPO", 		(SZ1->Z1_TIPOPED)	, Nil})
+				aadd(aCabec, {"C5_CONDPAG", (SZ1->Z1_CONDPAG)	, Nil})
+				aadd(aCabec, {"C5_TIPOPED",	(SZ1->Z1_TIPO)	  , Nil})
+				aLinha := {}
+				aadd(aLinha,{"C6_ITEM",			(SZ2->Z2_ITEM), Nil})
+				aadd(aLinha,{"C6_PRODUTO",  (SZ2->Z2_PRODUTO)	,Nil})
+				aadd(aLinha,{"C6_QTDVEN",   (SZ2->Z2_QTDVEN), Nil})
+				aadd(aLinha,{"C6_PRCVEN",   (SZ2->Z2_PRCVEN), Nil})
+				aadd(aLinha,{"C6_TES",		  (SZ2->Z2_TES)	  , Nil})
+				aadd(aItens, aLinha)
+			Endif
+		//Enddo 
+
 		nOpcX := 3
 		MSExecAuto({|a, b, c, d| MATA410(a, b, c, d)}, aCabec, aItens, nOpcX, .F.)
+		If (lMsErroAuto) //se houver erro
+			MostraErro()
+		Else
+			MsgInfo("Pedido de Venda incluido com sucesso.", "Aviso")
+		Endif
 
-		if (SZ2->(!Eof()))
-			aLinha := {}
-			aadd(aLinha,{"C6_ITEM",SZ2->Z2_ITEM, Nil})
-			aadd(aLinha,{"C6_PRODUTO", SZ2->Z2_PRODUTO,Nil})
-			aadd(aLinha,{"C6_QTDVEN", SZ2->Z2_QTDVEN, Nil})
-			aadd(aLinha,{"C6_PRCVEN",  SZ2->Z2_PRECO, Nil})
-			aadd(aLinha,{"C6_TES",SZ2->Z2_TES, Nil})
-			aadd(aItens, aLinha)
-		endif
-		SZ2->(DbSkip())
-	enddo
-	nOpcX := 3
-	MSExecAuto({|a, b, c, d| MATA410(a, b, c, d)}, aCabec, aItens, nOpcX, .F.)
-	If (lMsErroAuto)
-		MsgInfo("Erro na Importação", "Aviso")
-	Else
-		MsgInfo("Importado com Sucesso", "Aviso")
-	Endif
 Return()
