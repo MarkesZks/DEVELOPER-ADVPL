@@ -33,7 +33,7 @@ Static Function MenuDef() /*Uma função MenuDef define as operações quer serão re
 	Add Option aRotina Title OemToAnsi("Alterar")    Action "VIEWDEF.MVCOMA01" Operation 4 Access 0
 	Add Option aRotina Title OemToAnsi("Excluir")    Action "VIEWDEF.MVCOMA01" Operation 5 Access 0
 	Add Option aRotina Title OemToAnsi("Incuir Ped. Venda") Action "u_Import" Operation 4 Access 0
-	Add Option aRotina Title OemToAnsi("Estornar Ped. Venda") Action "VIEWDEF.MVCOMA01" Operation 4 Access 0
+	Add Option aRotina Title OemToAnsi("Estornar Ped. Venda") Action "u_Estornar" Operation 4 Access 0
 
 Return aRotina
 
@@ -91,6 +91,7 @@ Return (oView)
 
 User Function Import()
 	Local cQuery := ""
+	//Local nI := 0
 	Private lMsErroAuto := .F.
 	aCabec   := {}
 	aItens   := {}
@@ -98,22 +99,13 @@ User Function Import()
 	cUltVar := Nil
 	SC6 :=Nil
 	SC5 :=Nil
+	nRegs := 0
 
-	nI := 0
-
-	cQuery := "SELECT C6_ITEM"+ CRLF
-	cQuery += ",C6_PRODUTO" + CRLF
-	cQuery += ",C6_QTDVEN" + CRLF
-	cQuery += ",C6_PRCVEN   " + CRLF
-	cQuery += ",C6_TES FROM " + RetSQLName("SC6") + CRLF
-	cQuery += "WHERE D_E_L_E_T_= ''"+ CRLF
-
-	cQuery := "SELECT C5_NUM"+ CRLF
-	cQuery += ",C5_CLIENTE" + CRLF
-	cQuery += ",C5_LOJACLI" + CRLF
-	cQuery += ",C5_TIPO   " + CRLF
-	cQuery += ",C5_TIPOPED   " + CRLF
-	cQuery += ",C5_CONDPAG FROM " + RetSQLName("SC5") + CRLF
+	cQuery := "SELECT Z2_ITEM"+ CRLF
+	cQuery += ",Z2_PRODUTO" + CRLF
+	cQuery += ",Z2_QTDVEN" + CRLF
+	cQuery += ",Z2_PRECO   " + CRLF
+	cQuery += ",Z2_TES FROM " + RetSQLName("SZ2") + CRLF
 	cQuery += "WHERE D_E_L_E_T_= ''"+ CRLF
 
 	DbSelectArea("SZ2")
@@ -121,52 +113,117 @@ User Function Import()
 	SZ2->(DbSeek(xFilial("SZ2") +(SZ2->Z2_ITEM)))
 
 
-		//While (SZ2->(!Eof()))
-
-			If (SZ2->Z2_ITEM) == cUltVar
-				aLinha := {}
-				aadd(aLinha,{(SC6->C6_ITEM),(SZ2->Z2_ITEM), Nil})
-				aadd(aLinha,{(SC6->C6_PRODUTO), (SZ2->Z2_PRODUTO),Nil})
-				aadd(aLinha,{(SC6->C6_QTDVEN), (SZ2->Z2_QTDVEN), Nil})
-				aadd(aLinha,{(SC6->C6_PRCVEN),  (SZ2->Z2_PRCVEN), Nil})
-				aadd(aLinha,{(SC6->C6_TES),(SZ2->Z2_TES), Nil})
-				aadd(aItens, aLinha)
-			else
-				if Len(aLinha) > 0
-					nOpcX := 3
-					MSExecAuto({|a, b, c, d| MATA410(a, b, c, d)}, aCabec, aItens, nOpcX, .F.)
-					If (lMsErroAuto) //se houver erro
-						MostraErro()
-					Else
-						MsgInfo("Pedido de Venda incluido com sucesso.", "Aviso")
-					Endif
+	while (SZ2->(!EOF()))
+		If SZ2->Z2_ITEM == cUltVar
+			aLinha := {}
+			aadd(aLinha,{"C6_ITEM",StrZero(SZ2->Z2_ITEM,2), Nil})
+			aadd(aLinha,{"C6_PRODUTO", CValToChar(SZ2->Z2_PRODUTO),Nil})
+			aadd(aLinha,{"C6_QTDVEN", (SZ2->Z2_QTDVEN), Nil})
+			aadd(aLinha,{"C6_PRCVEN",  (SZ2->Z2_PRCVEN), Nil})
+			aadd(aLinha,{"C6_TES",(SZ2->Z2_TES), Nil})
+			aadd(aItens, aLinha)
+		else
+			if Len(aLinha) > 0
+				nOpcX := 3
+				MSExecAuto({|a, b, c, d| MATA410(a, b, c, d)}, aCabec, aItens, nOpcX, .F.)
+				If (lMsErroAuto) //se houver erro
+					MostraErro()
+				Else
+					MsgInfo("Pedido de Venda incluido com sucesso.", "Aviso")
 				Endif
-				cUltVar := (SZ2->Z2_ITEM)
-				aCabec   := {}
-				aItens   := {}
-				aLinha   := {}
-				aadd(aCabec, {	(SC5->C5_NUM)		,		(SZ1->Z1_CODIGO)	, Nil})
-				aadd(aCabec, {	(SC5->C5_CLIENTE)	,	(SZ1->Z1_CLIENTE)	, Nil})
-				aadd(aCabec, {	(SC5->C5_LOJACLI)	, (SZ1->Z1_LOJACLI)	, Nil})
-				aadd(aCabec, {	(SC5->C5_TIPO)		, (SZ1->Z1_TIPO)	, Nil})
-				aadd(aCabec, {	(SC5->C5_CONDPAG)	, (SZ1->Z1_CONDPAG)	, Nil})
-				aadd(aCabec, {	(SC5->C5_TIPOPED)	,	(SZ1->Z1_TIPOPED)	  , Nil})
-				aLinha := {}
-			aadd(aLinha,{(SC6->C6_ITEM),(SZ2->Z2_ITEM), Nil})
-				aadd(aLinha,{(SC6->C6_PRODUTO), (SZ2->Z2_PRODUTO),Nil})
-				aadd(aLinha,{(SC6->C6_QTDVEN), (SZ2->Z2_QTDVEN), Nil})
-				aadd(aLinha,{(SC6->C6_PRCVEN),  (SZ2->Z2_PRCVEN), Nil})
-				aadd(aLinha,{(SC6->C6_TES),(SZ2->Z2_TES), Nil})
-				aadd(aItens, aLinha)
 			Endif
-		//Enddo 
+			cUltVar := SZ2->Z2_ITEM
+			aCabec   := {}
+			aItens   := {}
+			aLinha   := {}
+			aadd(aCabec, {"C5_NUM"	,		(SZ1->Z1_CODIGO)	, Nil})
+			aadd(aCabec, {"C5_CLIENTE",	(SZ1->Z1_CLIENTE)	, Nil})
+			aadd(aCabec, {"C5_LOJACLI", PadL(SZ1->Z1_LOJACLI,2)	, Nil})
+			aadd(aCabec, {"C5_TIPO", 		(SZ1->Z1_TIPOPED)	, Nil})
+			aadd(aCabec, {"C5_CONDPAG", (SZ1->Z1_CONDPAG)	, Nil})
+			aadd(aCabec, {"C5_TIPOPED",	(SZ1->Z1_TIPO)	  , Nil})
+			aLinha := {}
+			aadd(aLinha,{"C6_ITEM",PadL(SZ2->Z2_ITEM,2), Nil})
+			aadd(aLinha,{"C6_PRODUTO", (SZ2->Z2_PRODUTO),Nil})
+			aadd(aLinha,{"C6_QTDVEN", Val(SZ2->Z2_QTDVEN), Nil})
+			aadd(aLinha,{"C6_PRCVEN",  VAL(SZ2->Z2_PRCVEN), Nil})
+			aadd(aLinha,{"C6_TES",(SZ2->Z2_TES), Nil})
+			aadd(aItens, aLinha)
+			cUltVar := (SZ2->Z2_ITEM)
+		Endif
+		SZ1->(DBSkip())
+	ENDDO
 
+	nOpcX := 3
+	MSExecAuto({|a, b, c, d| MATA410(a, b, c, d)}, aCabec, aItens, nOpcX, .F.)
+	If (lMsErroAuto) //se houver erro
+		MostraErro()
+	Else
+		MsgInfo("Pedido de Venda incluido com sucesso.", "Aviso")
+	Endif
+
+
+Return()
+
+
+User Function Estornar()
+	Local cQuery := ""
+	Private lMsErroAuto := .F.
+	aCabec   := {}
+	aItens   := {}
+	aLinha   := {}
+	cUltVar := Nil
+	nRegs := 0
+	nI := 0
+
+	cQuery := "SELECT Z2_ITEM"+ CRLF
+	cQuery += ",Z2_PRODUTO" + CRLF
+	cQuery += ",Z2_QTDVEN" + CRLF
+	cQuery += ",Z2_PRECO   " + CRLF
+	cQuery += ",Z2_TES FROM " + RetSQLName("SZ2") + CRLF
+	cQuery += "WHERE D_E_L_E_T_= ''"+ CRLF
+
+	DbSelectArea("SZ2")
+	SZ2->(DbSetOrder(1))
+	SZ2->(DbSeek(xFilial("SZ2") +(SZ2->Z2_ITEM)))
+
+
+	while (SZ2->Z2_ITEM) == cUltVar
+		aLinha := {}
+		aadd(aLinha,{"C6_ITEM",(SZ2->Z2_ITEM), Nil})
+		aadd(aLinha,{"C6_PRODUTO", CValToChar(SZ2->Z2_PRODUTO),Nil})
+		aadd(aLinha,{"C6_QTDVEN", (SZ2->Z2_QTDVEN), Nil})
+		aadd(aLinha,{"C6_PRCVEN",  (SZ2->Z2_PRCVEN), Nil})
+		aadd(aLinha,{"C6_TES",(SZ2->Z2_TES), Nil})
+		aadd(aItens, aLinha)
 		nOpcX := 3
 		MSExecAuto({|a, b, c, d| MATA410(a, b, c, d)}, aCabec, aItens, nOpcX, .F.)
-		If (lMsErroAuto) //se houver erro
-			MostraErro()
-		Else
-			MsgInfo("Pedido de Venda incluido com sucesso.", "Aviso")
-		Endif
+		SZ2->(DBSkip())
+	end
+	aCabec   := {}
+	aItens   := {}
+	aLinha   := {}
 
+	aadd(aCabec, {"C5_NUM"	,		(SZ1->Z1_CODIGO)	, Nil})
+	aadd(aCabec, {"C5_CLIENTE",	(SZ1->Z1_CLIENTE)	, Nil})
+	aadd(aCabec, {"C5_LOJACLI", PadL(SZ1->Z1_LOJACLI,2)	, Nil})
+	aadd(aCabec, {"C5_TIPO", 		(SZ1->Z1_TIPOPED)	, Nil})
+	aadd(aCabec, {"C5_CONDPAG", (SZ1->Z1_CONDPAG)	, Nil})
+	aadd(aCabec, {"C5_TIPOPED",	(SZ1->Z1_TIPO)	  , Nil})
+	aLinha := {}
+	cUltVar := (SZ2->Z2_ITEM)
+	aadd(aLinha,{"C6_ITEM",PadL(SZ2->Z2_ITEM,2), Nil})
+	aadd(aLinha,{"C6_PRODUTO", (SZ2->Z2_PRODUTO),Nil})
+	aadd(aLinha,{"C6_QTDVEN", (SZ2->Z2_QTDVEN), Nil})
+	aadd(aLinha,{"C6_PRCVEN",  (SZ2->Z2_PRCVEN), Nil})
+	aadd(aLinha,{"C6_TES",VAL(SZ2->Z2_TES), Nil})
+	aadd(aItens, aLinha)
+
+	nOpcX := 4
+	MSExecAuto({|a, b, c, d| MATA410(a, b, c, d)}, aCabec, aItens, nOpcX, .F.)
+	If (lMsErroAuto) //se houver erro
+		MostraErro()
+	Else
+		MsgInfo("Pedido de Venda incluido com sucesso.", "Aviso")
+	Endif
 Return()

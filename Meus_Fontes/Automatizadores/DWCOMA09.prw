@@ -100,7 +100,7 @@ User Function DWCOMA09()
 
 			Next nI
 
-			MSExecAuto({|a,b,c,d,e| MATA120(a,b,c,d,e)}, 1 , aCabec, aItens,  nOpcX, .F.) //erro aqui
+			MSExecAuto({|a,b,c,d,e| MATA120(a,b,c,d,e)}, 1 , aCabec, aItens,  nOpcX, .F.) 
 
 					If (lMsErroAuto)
 						MsgInfo("Erro na Importação", "Aviso")
