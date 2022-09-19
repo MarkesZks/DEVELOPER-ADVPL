@@ -113,10 +113,10 @@ User Function Import()
 	SZ2->(DbSeek(xFilial("SZ2") +(SZ2->Z2_ITEM)))
 
 
-	while (SZ2->(!EOF()))
+	//while (SZ2->(!EOF()))
 		If SZ2->Z2_ITEM == cUltVar
 			aLinha := {}
-			aadd(aLinha,{"C6_ITEM",StrZero(SZ2->Z2_ITEM,2), Nil})
+			aadd(aLinha,{"C6_ITEM", (SZ2->Z2_ITEM), Nil})
 			aadd(aLinha,{"C6_PRODUTO", CValToChar(SZ2->Z2_PRODUTO),Nil})
 			aadd(aLinha,{"C6_QTDVEN", (SZ2->Z2_QTDVEN), Nil})
 			aadd(aLinha,{"C6_PRCVEN",  (SZ2->Z2_PRCVEN), Nil})
@@ -145,15 +145,14 @@ User Function Import()
 			aLinha := {}
 			aadd(aLinha,{"C6_ITEM",PadL(SZ2->Z2_ITEM,2), Nil})
 			aadd(aLinha,{"C6_PRODUTO", (SZ2->Z2_PRODUTO),Nil})
-			aadd(aLinha,{"C6_QTDVEN", Val(SZ2->Z2_QTDVEN), Nil})
-			aadd(aLinha,{"C6_PRCVEN",  VAL(SZ2->Z2_PRCVEN), Nil})
+			aadd(aLinha,{"C6_QTDVEN", (SZ2->Z2_QTDVEN), Nil})
+			aadd(aLinha,{"C6_PRCVEN",  (SZ2->Z2_PRCVEN), Nil})
 			aadd(aLinha,{"C6_TES",(SZ2->Z2_TES), Nil})
 			aadd(aItens, aLinha)
 			cUltVar := (SZ2->Z2_ITEM)
 		Endif
 		SZ1->(DBSkip())
-	ENDDO
-
+	//ENDDO
 	nOpcX := 3
 	MSExecAuto({|a, b, c, d| MATA410(a, b, c, d)}, aCabec, aItens, nOpcX, .F.)
 	If (lMsErroAuto) //se houver erro
