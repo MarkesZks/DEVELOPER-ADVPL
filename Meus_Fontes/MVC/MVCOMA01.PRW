@@ -120,7 +120,7 @@ User Function Import()
 			aadd(aLinha,{"C6_PRODUTO", CValToChar(SZ2->Z2_PRODUTO),Nil})
 			aadd(aLinha,{"C6_QTDVEN", (SZ2->Z2_QTDVEN), Nil})
 			aadd(aLinha,{"C6_PRCVEN",  (SZ2->Z2_PRCVEN), Nil})
-			aadd(aLinha,{"C6_TES",(SZ2->Z2_TES), Nil})
+			aadd(aLinha,{"C6_TES",	CValToChar(SZ2->Z2_TES), Nil})
 			aadd(aItens, aLinha)
 		else
 			if Len(aLinha) > 0
@@ -151,10 +151,10 @@ User Function Import()
 			aadd(aItens, aLinha)
 			cUltVar := (SZ2->Z2_ITEM)
 		Endif
-		SZ1->(DBSkip())
 	//ENDDO
 	nOpcX := 3
 	MSExecAuto({|a, b, c, d| MATA410(a, b, c, d)}, aCabec, aItens, nOpcX, .F.)
+		//SZ2->(DBSkip())
 	If (lMsErroAuto) //se houver erro
 		MostraErro()
 	Else
