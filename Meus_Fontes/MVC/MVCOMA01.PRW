@@ -96,7 +96,6 @@ User Function Import()
 	aCabec   := {}
 	aItens   := {}
 	aLinha   := {}
-	cUltVar := Nil
 	SC6 :=Nil
 	SC5 :=Nil
 	nRegs := 0
@@ -112,28 +111,9 @@ User Function Import()
 
 	DbSelectArea("SZ2")
 	SZ2->(DbSetOrder(1))
-	SZ2->(DbSeek(xFilial("SZ2")+(SZ2->Z2_CODIGO)+(SZ2->Z2_ITEM)))
+	SZ2->(DbSeek(xFilial("SZ2")+(SZ1->Z1_CODIGO)))
 
-	//while (SZ2->(!EOF()))
-	If SZ2->Z2_ITEM == cUltVar
-		aLinha := {}
-		aadd(aLinha,{"C6_ITEM", (SZ2->Z2_ITEM), Nil})
-		aadd(aLinha,{"C6_PRODUTO", CValToChar(SZ2->Z2_PRODUTO),Nil})
-		aadd(aLinha,{"C6_QTDVEN", (SZ2->Z2_QTDVEN), Nil})
-		aadd(aLinha,{"C6_PRCVEN",  (SZ2->Z2_PRCVEN), Nil})
-		aadd(aLinha,{"C6_TES",	(SZ2->Z2_TES), Nil})
-		aadd(aItens, aLinha)
-	else
-		if Len(aLinha) > 0
-			nOpcX := 3
-			MSExecAuto({|a, b, c, d| MATA410(a, b, c, d)}, aCabec, aItens, nOpcX, .F.)
-			If (lMsErroAuto) //se houver erro
-				MostraErro()
-			Else
-				MsgInfo("Pedido de Venda incluido com sucesso.", "Aviso")
-			Endif
-		Endif
-		cUltVar := SZ2->Z2_ITEM
+	while (SZ1->(xFilial("SZ1")+(SZ1->Z1_CODIGO))) == SZ2->(xFilial("SZ2")+SZ2->Z2_CODIGO) .and. SZ2->(!EOF())
 		aCabec   := {}
 		aItens   := {}
 		aLinha   := {}
@@ -150,10 +130,8 @@ User Function Import()
 		aadd(aLinha,{"C6_PRCVEN",  (SZ2->Z2_PRCVEN), Nil})
 		aadd(aLinha,{"C6_TES",(SZ2->Z2_TES), Nil})
 		aadd(aItens, aLinha)
-		cUltVar := (SZ2->Z2_ITEM)
-	Endif
-
-	//ENDDO
+		DBSkip()
+	ENDDO
 	nOpcX := 3
 	MSExecAuto({|a, b, c, d| MATA410(a, b, c, d)}, aCabec, aItens, nOpcX, .F.)
 
