@@ -91,11 +91,12 @@ Return (oView)
 
 User Function Import()
 	Local cQuery := ""
-	//Local nI := 0
+	Local cUltVar := ''
 	Private lMsErroAuto := .F.
 	aCabec   := {}
 	aItens   := {}
 	aLinha   := {}
+
 	SC6 :=Nil
 	SC5 :=Nil
 	nRegs := 0
@@ -123,14 +124,23 @@ User Function Import()
 		aadd(aCabec, {"C5_TIPO", 		(SZ1->Z1_TIPOPED)	, Nil})
 		aadd(aCabec, {"C5_CONDPAG", (SZ1->Z1_CONDPAG)	, Nil})
 		aadd(aCabec, {"C5_TIPOPED",	(SZ1->Z1_TIPO)	  , Nil})
-		aLinha := {}
+		//	aLinha := {}
 		aadd(aLinha,{"C6_ITEM",PadL(SZ2->Z2_ITEM,2), Nil})
 		aadd(aLinha,{"C6_PRODUTO", (SZ2->Z2_PRODUTO),Nil})
 		aadd(aLinha,{"C6_QTDVEN", (SZ2->Z2_QTDVEN), Nil})
 		aadd(aLinha,{"C6_PRCVEN",  (SZ2->Z2_PRCVEN), Nil})
 		aadd(aLinha,{"C6_TES",(SZ2->Z2_TES), Nil})
 		aadd(aItens, aLinha)
-		DBSkip()
+		cUltVar:= Z2_ITEM
+		if cUltVar !=Z2_ITEM
+			aadd(aLinha,{"C6_ITEM",PadL(SZ2->Z2_ITEM,2), Nil})
+			aadd(aLinha,{"C6_PRODUTO", (SZ2->Z2_PRODUTO),Nil})
+			aadd(aLinha,{"C6_QTDVEN", (SZ2->Z2_QTDVEN), Nil})
+			aadd(aLinha,{"C6_PRCVEN",  (SZ2->Z2_PRCVEN), Nil})
+			aadd(aLinha,{"C6_TES",(SZ2->Z2_TES), Nil})
+			aadd(aItens, aLinha)
+		endif
+		SZ2->(DBSkip())
 	ENDDO
 	nOpcX := 3
 	MSExecAuto({|a, b, c, d| MATA410(a, b, c, d)}, aCabec, aItens, nOpcX, .F.)
@@ -141,64 +151,59 @@ User Function Import()
 		MsgInfo("Pedido de Venda incluido com sucesso.", "Aviso")
 	Endif
 Return()
+
+
+
+
+
+
 User Function Estornar()
 	Local cQuery := ""
+	//Local nI := 0
 	Private lMsErroAuto := .F.
 	aCabec   := {}
 	aItens   := {}
 	aLinha   := {}
-	cUltVar := Nil
+	SC6 :=Nil
+	SC5 :=Nil
 	nRegs := 0
-	nI := 0
 
 	cQuery := "SELECT Z2_ITEM"+ CRLF
 	cQuery += ",Z2_PRODUTO" + CRLF
 	cQuery += ",Z2_QTDVEN" + CRLF
-	cQuery += ",Z2_PRECO   " + CRLF
+	cQuery += ",Z2_PRECO" + CRLF
+	cQuery += ",Z2_CODIGO" + CRLF
 	cQuery += ",Z2_TES FROM " + RetSQLName("SZ2") + CRLF
 	cQuery += "WHERE D_E_L_E_T_= ''"+ CRLF
 
+
 	DbSelectArea("SZ2")
 	SZ2->(DbSetOrder(1))
-	SZ2->(DbSeek(xFilial("SZ2") +(SZ2->Z2_ITEM)))
-
-
-	while (SZ2->Z2_ITEM) == cUltVar
+	SZ2->(DbSeek(xFilial("SZ2")+(SZ1->Z1_CODIGO)))
+	while (SZ1->(xFilial("SZ1")+(SZ1->Z1_CODIGO))) == SZ2->(xFilial("SZ2")+SZ2->Z2_CODIGO) .and. SZ2->(!EOF())
+		aCabec   := {}
+		aItens   := {}
+		aLinha   := {}
+		aadd(aCabec, {"C5_NUM"	,		(SZ1->Z1_CODIGO)	, Nil})
+		aadd(aCabec, {"C5_CLIENTE",	(SZ1->Z1_CLIENTE)	, Nil})
+		aadd(aCabec, {"C5_LOJACLI", PadL(SZ1->Z1_LOJACLI,2)	, Nil})
+		aadd(aCabec, {"C5_TIPO", 		(SZ1->Z1_TIPOPED)	, Nil})
+		aadd(aCabec, {"C5_CONDPAG", (SZ1->Z1_CONDPAG)	, Nil})
+		aadd(aCabec, {"C5_TIPOPED",	(SZ1->Z1_TIPO)	  , Nil})
 		aLinha := {}
-		aadd(aLinha,{"C6_ITEM",(SZ2->Z2_ITEM), Nil})
-		aadd(aLinha,{"C6_PRODUTO", CValToChar(SZ2->Z2_PRODUTO),Nil})
+		aadd(aLinha,{"C6_ITEM",PadL(SZ2->Z2_ITEM,2), Nil})
+		aadd(aLinha,{"C6_PRODUTO", (SZ2->Z2_PRODUTO),Nil})
 		aadd(aLinha,{"C6_QTDVEN", (SZ2->Z2_QTDVEN), Nil})
 		aadd(aLinha,{"C6_PRCVEN",  (SZ2->Z2_PRCVEN), Nil})
 		aadd(aLinha,{"C6_TES",(SZ2->Z2_TES), Nil})
 		aadd(aItens, aLinha)
-		nOpcX := 3
-		MSExecAuto({|a, b, c, d| MATA410(a, b, c, d)}, aCabec, aItens, nOpcX, .F.)
-		SZ2->(DBSkip())
-	end
-	aCabec   := {}
-	aItens   := {}
-	aLinha   := {}
-
-	aadd(aCabec, {"C5_NUM"	,		(SZ1->Z1_CODIGO)	, Nil})
-	aadd(aCabec, {"C5_CLIENTE",	(SZ1->Z1_CLIENTE)	, Nil})
-	aadd(aCabec, {"C5_LOJACLI", PadL(SZ1->Z1_LOJACLI,2)	, Nil})
-	aadd(aCabec, {"C5_TIPO", 		(SZ1->Z1_TIPOPED)	, Nil})
-	aadd(aCabec, {"C5_CONDPAG", (SZ1->Z1_CONDPAG)	, Nil})
-	aadd(aCabec, {"C5_TIPOPED",	(SZ1->Z1_TIPO)	  , Nil})
-	aLinha := {}
-	cUltVar := (SZ2->Z2_ITEM)
-	aadd(aLinha,{"C6_ITEM",PadL(SZ2->Z2_ITEM,2), Nil})
-	aadd(aLinha,{"C6_PRODUTO", (SZ2->Z2_PRODUTO),Nil})
-	aadd(aLinha,{"C6_QTDVEN", (SZ2->Z2_QTDVEN), Nil})
-	aadd(aLinha,{"C6_PRCVEN",  (SZ2->Z2_PRCVEN), Nil})
-	aadd(aLinha,{"C6_TES",VAL(SZ2->Z2_TES), Nil})
-	aadd(aItens, aLinha)
-
+		dbskip()
+	ENDDO
 	nOpcX := 4
 	MSExecAuto({|a, b, c, d| MATA410(a, b, c, d)}, aCabec, aItens, nOpcX, .F.)
-	If (lMsErroAuto) //se houver erro
+	If (lMsErroAuto)
 		MostraErro()
 	Else
-		MsgInfo("Pedido de Venda incluido com sucesso.", "Aviso")
+		MsgInfo("Pedido de Venda estornado com sucesso", "Aviso")
 	Endif
 Return()
