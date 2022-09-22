@@ -95,10 +95,9 @@ User Function Import()
 	aCabec   := {}
 	aItens   := {}
 	aLinha   := {}
+	//SC6 :=Nil
+	//SC5 :=Nil
 
-	SC6 :=Nil
-	SC5 :=Nil
-	nRegs := 0
 
 	cQuery := "SELECT Z2_ITEM"+ CRLF
 	cQuery += ",Z2_PRODUTO" + CRLF
@@ -129,16 +128,15 @@ User Function Import()
 		aadd(aLinha,{"C6_ITEM",			(SZ2->Z2_ITEM)    , Nil})
 		aadd(aLinha,{"C6_PRODUTO", 		(SZ2->Z2_PRODUTO) , Nil})
 		aadd(aLinha,{"C6_QTDVEN", 		(SZ2->Z2_QTDVEN)  , Nil})
-		aadd(aLinha,{"C6_PRCVEN",  		(SZ2->Z2_PRECO)	  , Nil})
+		aadd(aLinha,{"C6_PRCVEN",  		(SZ2->Z2_PRCVEN)	  , Nil})
 		aadd(aLinha,{"C6_TES",			(SZ2->Z2_TES)	  , Nil})
 		aadd(aItens, aLinha)
 
 		DBSkip()
 
 	ENDDO
+	SZ1->Z1_NUMERO := SC5->C5_NUM
 
-	//SC5->C5_NUM
-	//Z1_tal->("C5_NUM") campo recebe valor do código criado a partir do GetSXENum("SC5", "C5_NUM")
 
 	nOpcX := 3
 	MSExecAuto({|a, b, c, d| MATA410(a, b, c, d)}, aCabec, aItens, nOpcX, .F.)
@@ -153,18 +151,12 @@ Return()
 
 
 
-
-
 User Function Estornar()
 	Local cQuery := ""
-	//Local nI := 0
 	Private lMsErroAuto := .F.
 	aCabec   := {}
 	aItens   := {}
 	aLinha   := {}
-	SC6 :=Nil
-	SC5 :=Nil
-	nRegs := 0
 
 	cQuery := "SELECT Z2_ITEM"+ CRLF
 	cQuery += ",Z2_PRODUTO" + CRLF
@@ -183,7 +175,7 @@ User Function Estornar()
 	aCabec   := {}
 	aItens   := {}
 	aLinha   := {}
-	aadd(aCabec, {"C5_NUM"	,		GetSXENum("SC5", "C5_NUM")	, Nil})
+	aadd(aCabec, {"C5_NUM"	,		(SZ1->Z1_NUMERO)	, Nil})
 	aadd(aCabec, {"C5_TIPO", 		(SZ1->Z1_TIPOPED)	, Nil})
 	aadd(aCabec, {"C5_CLIENTE",		(SZ1->Z1_CLIENTE)	, Nil})
 	aadd(aCabec, {"C5_LOJACLI", 	(SZ1->Z1_LOJACLI)	, Nil})
@@ -196,23 +188,24 @@ User Function Estornar()
 		aadd(aLinha,{"C6_ITEM",			(SZ2->Z2_ITEM)    , Nil})
 		aadd(aLinha,{"C6_PRODUTO", 		(SZ2->Z2_PRODUTO) , Nil})
 		aadd(aLinha,{"C6_QTDVEN", 		(SZ2->Z2_QTDVEN)  , Nil})
-		aadd(aLinha,{"C6_PRCVEN",  		(SZ2->Z2_PRECO)	  , Nil})
+		aadd(aLinha,{"C6_PRCVEN",  		(SZ2->Z2_PRCVEN)	  , Nil})
 		aadd(aLinha,{"C6_TES",			(SZ2->Z2_TES)	  , Nil})
 		aadd(aItens, aLinha)
 
 		DBSkip()
 
 	ENDDO
-//	aadd(aCabec, {"C5_NUM"	,		GetSXENum("SC5", "C5_NUM")	, Nil})
-	//SC5->C5_NUM
-	//Z1_tal->("C5_NUM") campo recebe valor do código criado a partir do GetSXENum("SC5", "C5_NUM")
+
+
+
+If (SZ1->(xFilial("SZ1")+(SZ1->Z1_NUMERO))) == SC5->(xFilial("SC5")+(SC5->C5_NUM))
 
 	nOpcX := 5
 	MSExecAuto({|a, b, c, d| MATA410(a, b, c, d)}, aCabec, aItens, nOpcX, .F.)
-
+Endif
 	If (lMsErroAuto)
 		MostraErro()
 	Else
-		MsgInfo("Pedido de Venda incluido com sucesso.", "Aviso")
+		MsgInfo("Pedido de Venda estornado com sucesso.", "Aviso")
 	Endif
 Return()
