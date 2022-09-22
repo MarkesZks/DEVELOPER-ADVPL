@@ -91,7 +91,6 @@ Return (oView)
 
 User Function Import()
 	Local cQuery := ""
-	Local cUltVar := ''
 	Private lMsErroAuto := .F.
 	aCabec   := {}
 	aItens   := {}
@@ -114,34 +113,33 @@ User Function Import()
 	SZ2->(DbSetOrder(1))
 	SZ2->(DbSeek(xFilial("SZ2")+(SZ1->Z1_CODIGO)))
 
+	aCabec   := {}
+	aItens   := {}
+	aLinha   := {}
+	aadd(aCabec, {"C5_NUM"	,		GetSXENum("SC5", "C5_NUM")	, Nil})
+	aadd(aCabec, {"C5_TIPO", 		(SZ1->Z1_TIPOPED)	, Nil})
+	aadd(aCabec, {"C5_CLIENTE",		(SZ1->Z1_CLIENTE)	, Nil})
+	aadd(aCabec, {"C5_LOJACLI", 	(SZ1->Z1_LOJACLI)	, Nil})
+	aadd(aCabec, {"C5_CONDPAG", 	(SZ1->Z1_CONDPAG)	, Nil})
+	//aadd(aCabec, {"C5_TIPOCLI",		(SZ1->Z1_TIPOCLI)	, Nil})
+
 	while (SZ1->(xFilial("SZ1")+(SZ1->Z1_CODIGO))) == SZ2->(xFilial("SZ2")+SZ2->Z2_CODIGO) .and. SZ2->(!EOF())
-		aCabec   := {}
-		aItens   := {}
-		aLinha   := {}
-		aadd(aCabec, {"C5_NUM"	,		(SZ1->Z1_CODIGO)	, Nil})
-		aadd(aCabec, {"C5_CLIENTE",	(SZ1->Z1_CLIENTE)	, Nil})
-		aadd(aCabec, {"C5_LOJACLI", PadL(SZ1->Z1_LOJACLI,2)	, Nil})
-		aadd(aCabec, {"C5_TIPO", 		(SZ1->Z1_TIPOPED)	, Nil})
-		aadd(aCabec, {"C5_CONDPAG", (SZ1->Z1_CONDPAG)	, Nil})
-		aadd(aCabec, {"C5_TIPOPED",	(SZ1->Z1_TIPO)	  , Nil})
-		//	aLinha := {}
-		aadd(aLinha,{"C6_ITEM",PadL(SZ2->Z2_ITEM,2), Nil})
-		aadd(aLinha,{"C6_PRODUTO", (SZ2->Z2_PRODUTO),Nil})
-		aadd(aLinha,{"C6_QTDVEN", (SZ2->Z2_QTDVEN), Nil})
-		aadd(aLinha,{"C6_PRCVEN",  (SZ2->Z2_PRCVEN), Nil})
-		aadd(aLinha,{"C6_TES",(SZ2->Z2_TES), Nil})
+
+		aLinha := {}
+		aadd(aLinha,{"C6_ITEM",			(SZ2->Z2_ITEM)    , Nil})
+		aadd(aLinha,{"C6_PRODUTO", 		(SZ2->Z2_PRODUTO) , Nil})
+		aadd(aLinha,{"C6_QTDVEN", 		(SZ2->Z2_QTDVEN)  , Nil})
+		aadd(aLinha,{"C6_PRCVEN",  		(SZ2->Z2_PRECO)	  , Nil})
+		aadd(aLinha,{"C6_TES",			(SZ2->Z2_TES)	  , Nil})
 		aadd(aItens, aLinha)
-		cUltVar:= Z2_ITEM
-		if cUltVar !=Z2_ITEM
-			aadd(aLinha,{"C6_ITEM",PadL(SZ2->Z2_ITEM,2), Nil})
-			aadd(aLinha,{"C6_PRODUTO", (SZ2->Z2_PRODUTO),Nil})
-			aadd(aLinha,{"C6_QTDVEN", (SZ2->Z2_QTDVEN), Nil})
-			aadd(aLinha,{"C6_PRCVEN",  (SZ2->Z2_PRCVEN), Nil})
-			aadd(aLinha,{"C6_TES",(SZ2->Z2_TES), Nil})
-			aadd(aItens, aLinha)
-		endif
-		SZ2->(DBSkip())
+
+		DBSkip()
+
 	ENDDO
+
+	//SC5->C5_NUM
+	//Z1_tal->("C5_NUM") campo recebe valor do código criado a partir do GetSXENum("SC5", "C5_NUM")
+
 	nOpcX := 3
 	MSExecAuto({|a, b, c, d| MATA410(a, b, c, d)}, aCabec, aItens, nOpcX, .F.)
 
@@ -180,30 +178,41 @@ User Function Estornar()
 	DbSelectArea("SZ2")
 	SZ2->(DbSetOrder(1))
 	SZ2->(DbSeek(xFilial("SZ2")+(SZ1->Z1_CODIGO)))
+
+	
+	aCabec   := {}
+	aItens   := {}
+	aLinha   := {}
+	aadd(aCabec, {"C5_NUM"	,		GetSXENum("SC5", "C5_NUM")	, Nil})
+	aadd(aCabec, {"C5_TIPO", 		(SZ1->Z1_TIPOPED)	, Nil})
+	aadd(aCabec, {"C5_CLIENTE",		(SZ1->Z1_CLIENTE)	, Nil})
+	aadd(aCabec, {"C5_LOJACLI", 	(SZ1->Z1_LOJACLI)	, Nil})
+	aadd(aCabec, {"C5_CONDPAG", 	(SZ1->Z1_CONDPAG)	, Nil})
+	//aadd(aCabec, {"C5_TIPOCLI",		(SZ1->Z1_TIPOCLI)	, Nil})
+
 	while (SZ1->(xFilial("SZ1")+(SZ1->Z1_CODIGO))) == SZ2->(xFilial("SZ2")+SZ2->Z2_CODIGO) .and. SZ2->(!EOF())
-		aCabec   := {}
-		aItens   := {}
-		aLinha   := {}
-		aadd(aCabec, {"C5_NUM"	,		(SZ1->Z1_CODIGO)	, Nil})
-		aadd(aCabec, {"C5_CLIENTE",	(SZ1->Z1_CLIENTE)	, Nil})
-		aadd(aCabec, {"C5_LOJACLI", PadL(SZ1->Z1_LOJACLI,2)	, Nil})
-		aadd(aCabec, {"C5_TIPO", 		(SZ1->Z1_TIPOPED)	, Nil})
-		aadd(aCabec, {"C5_CONDPAG", (SZ1->Z1_CONDPAG)	, Nil})
-		aadd(aCabec, {"C5_TIPOPED",	(SZ1->Z1_TIPO)	  , Nil})
+
 		aLinha := {}
-		aadd(aLinha,{"C6_ITEM",PadL(SZ2->Z2_ITEM,2), Nil})
-		aadd(aLinha,{"C6_PRODUTO", (SZ2->Z2_PRODUTO),Nil})
-		aadd(aLinha,{"C6_QTDVEN", (SZ2->Z2_QTDVEN), Nil})
-		aadd(aLinha,{"C6_PRCVEN",  (SZ2->Z2_PRCVEN), Nil})
-		aadd(aLinha,{"C6_TES",(SZ2->Z2_TES), Nil})
+		aadd(aLinha,{"C6_ITEM",			(SZ2->Z2_ITEM)    , Nil})
+		aadd(aLinha,{"C6_PRODUTO", 		(SZ2->Z2_PRODUTO) , Nil})
+		aadd(aLinha,{"C6_QTDVEN", 		(SZ2->Z2_QTDVEN)  , Nil})
+		aadd(aLinha,{"C6_PRCVEN",  		(SZ2->Z2_PRECO)	  , Nil})
+		aadd(aLinha,{"C6_TES",			(SZ2->Z2_TES)	  , Nil})
 		aadd(aItens, aLinha)
-		dbskip()
+
+		DBSkip()
+
 	ENDDO
-	nOpcX := 4
+//	aadd(aCabec, {"C5_NUM"	,		GetSXENum("SC5", "C5_NUM")	, Nil})
+	//SC5->C5_NUM
+	//Z1_tal->("C5_NUM") campo recebe valor do código criado a partir do GetSXENum("SC5", "C5_NUM")
+
+	nOpcX := 5
 	MSExecAuto({|a, b, c, d| MATA410(a, b, c, d)}, aCabec, aItens, nOpcX, .F.)
+
 	If (lMsErroAuto)
 		MostraErro()
 	Else
-		MsgInfo("Pedido de Venda estornado com sucesso", "Aviso")
+		MsgInfo("Pedido de Venda incluido com sucesso.", "Aviso")
 	Endif
 Return()
