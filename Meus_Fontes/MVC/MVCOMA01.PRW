@@ -90,37 +90,26 @@ Return (oView)
 
 
 User Function Import()
-	Local cQuery := ""
+	Local cVar := ""
 	Private lMsErroAuto := .F.
 	aCabec   := {}
 	aItens   := {}
 	aLinha   := {}
-	//SC6 :=Nil
-	//SC5 :=Nil
-
-
-	cQuery := "SELECT Z2_ITEM"+ CRLF
-	cQuery += ",Z2_PRODUTO" + CRLF
-	cQuery += ",Z2_QTDVEN" + CRLF
-	cQuery += ",Z2_PRECO" + CRLF
-	cQuery += ",Z2_CODIGO" + CRLF
-	cQuery += ",Z2_TES FROM " + RetSQLName("SZ2") + CRLF
-	cQuery += "WHERE D_E_L_E_T_= ''"+ CRLF
-
 
 	DbSelectArea("SZ2")
 	SZ2->(DbSetOrder(1))
 	SZ2->(DbSeek(xFilial("SZ2")+(SZ1->Z1_CODIGO)))
 
+	cVar := GetSXENum("SC5", "C5_NUM")
+
 	aCabec   := {}
 	aItens   := {}
 	aLinha   := {}
-	aadd(aCabec, {"C5_NUM"	,		GetSXENum("SC5", "C5_NUM")	, Nil})
-	aadd(aCabec, {"C5_TIPO", 		(SZ1->Z1_TIPOPED)	, Nil})
+	aadd(aCabec, {"C5_NUM"	,			(cVar)						, Nil})
+	aadd(aCabec, {"C5_TIPO", 			(SZ1->Z1_TIPOPED)	, Nil})
 	aadd(aCabec, {"C5_CLIENTE",		(SZ1->Z1_CLIENTE)	, Nil})
 	aadd(aCabec, {"C5_LOJACLI", 	(SZ1->Z1_LOJACLI)	, Nil})
 	aadd(aCabec, {"C5_CONDPAG", 	(SZ1->Z1_CONDPAG)	, Nil})
-	//aadd(aCabec, {"C5_TIPOCLI",		(SZ1->Z1_TIPOCLI)	, Nil})
 
 	while (SZ1->(xFilial("SZ1")+(SZ1->Z1_CODIGO))) == SZ2->(xFilial("SZ2")+SZ2->Z2_CODIGO) .and. SZ2->(!EOF())
 
@@ -135,52 +124,46 @@ User Function Import()
 		DBSkip()
 
 	ENDDO
-	SZ1->Z1_NUMERO := SC5->C5_NUM
 
+	//criar condição para não incluir pedido repetido
 
 	nOpcX := 3
 	MSExecAuto({|a, b, c, d| MATA410(a, b, c, d)}, aCabec, aItens, nOpcX, .F.)
 
 	If (lMsErroAuto)
 		MostraErro()
+		RollbackSx8()
 	Else
+		ConfirmSx8()
+		RecLock("SZ1", .F.)
+		SZ1->Z1_NUMERO := cVar //campo recebe valor do código criado a partir do GetSXENum("SC5", "C5_NUM")
+		SZ1->(MsUnlock())
+
 		MsgInfo("Pedido de Venda incluido com sucesso.", "Aviso")
 	Endif
 Return()
 
 
 
-
 User Function Estornar()
-	Local cQuery := ""
+	
 	Private lMsErroAuto := .F.
 	aCabec   := {}
 	aItens   := {}
 	aLinha   := {}
 
-	cQuery := "SELECT Z2_ITEM"+ CRLF
-	cQuery += ",Z2_PRODUTO" + CRLF
-	cQuery += ",Z2_QTDVEN" + CRLF
-	cQuery += ",Z2_PRECO" + CRLF
-	cQuery += ",Z2_CODIGO" + CRLF
-	cQuery += ",Z2_TES FROM " + RetSQLName("SZ2") + CRLF
-	cQuery += "WHERE D_E_L_E_T_= ''"+ CRLF
-
-
 	DbSelectArea("SZ2")
 	SZ2->(DbSetOrder(1))
 	SZ2->(DbSeek(xFilial("SZ2")+(SZ1->Z1_CODIGO)))
 
-	
 	aCabec   := {}
 	aItens   := {}
 	aLinha   := {}
 	aadd(aCabec, {"C5_NUM"	,		(SZ1->Z1_NUMERO)	, Nil})
-	aadd(aCabec, {"C5_TIPO", 		(SZ1->Z1_TIPOPED)	, Nil})
+	aadd(aCabec, {"C5_TIPO", 		(SZ1->Z1_TIPOPED)		, Nil})
 	aadd(aCabec, {"C5_CLIENTE",		(SZ1->Z1_CLIENTE)	, Nil})
 	aadd(aCabec, {"C5_LOJACLI", 	(SZ1->Z1_LOJACLI)	, Nil})
 	aadd(aCabec, {"C5_CONDPAG", 	(SZ1->Z1_CONDPAG)	, Nil})
-	//aadd(aCabec, {"C5_TIPOCLI",		(SZ1->Z1_TIPOCLI)	, Nil})
 
 	while (SZ1->(xFilial("SZ1")+(SZ1->Z1_CODIGO))) == SZ2->(xFilial("SZ2")+SZ2->Z2_CODIGO) .and. SZ2->(!EOF())
 
@@ -196,16 +179,14 @@ User Function Estornar()
 
 	ENDDO
 
-
-
-If (SZ1->(xFilial("SZ1")+(SZ1->Z1_NUMERO))) == SC5->(xFilial("SC5")+(SC5->C5_NUM))
-
 	nOpcX := 5
 	MSExecAuto({|a, b, c, d| MATA410(a, b, c, d)}, aCabec, aItens, nOpcX, .F.)
-Endif
+
 	If (lMsErroAuto)
 		MostraErro()
 	Else
-		MsgInfo("Pedido de Venda estornado com sucesso.", "Aviso")
+		MsgInfo("Pedido de Venda excluído com sucesso.", "Aviso")
+
 	Endif
+
 Return()
