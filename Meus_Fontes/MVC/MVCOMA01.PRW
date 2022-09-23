@@ -88,7 +88,6 @@ Static Function ViewDef()
 Return (oView)
 
 
-
 User Function Import()
 	Local cVar := ""
 	Private lMsErroAuto := .F.
@@ -100,53 +99,60 @@ User Function Import()
 	SZ2->(DbSetOrder(1))
 	SZ2->(DbSeek(xFilial("SZ2")+(SZ1->Z1_CODIGO)))
 
+	If	(SZ1->Z1_CODIGO) == (SC5->C5_CODPP) // Se o codigo for o mesmo do codigo do pedido já estara incluido 
+		MsgInfo("Pedido de Venda já incluso.", "Aviso")
+	else
+
 	cVar := GetSXENum("SC5", "C5_NUM")
 
-	aCabec   := {}
-	aItens   := {}
-	aLinha   := {}
-	aadd(aCabec, {"C5_NUM"	,			(cVar)						, Nil})
-	aadd(aCabec, {"C5_TIPO", 			(SZ1->Z1_TIPOPED)	, Nil})
-	aadd(aCabec, {"C5_CLIENTE",		(SZ1->Z1_CLIENTE)	, Nil})
-	aadd(aCabec, {"C5_LOJACLI", 	(SZ1->Z1_LOJACLI)	, Nil})
-	aadd(aCabec, {"C5_CONDPAG", 	(SZ1->Z1_CONDPAG)	, Nil})
+		aCabec   := {}
+		aItens   := {}
+		aLinha   := {}
+		aadd(aCabec, {"C5_NUM"	,			cVar						, Nil})
+		aadd(aCabec, {"C5_TIPO", 			(SZ1->Z1_TIPOPED)	, Nil})
+		aadd(aCabec, {"C5_CLIENTE",		(SZ1->Z1_CLIENTE)	, Nil})
+		aadd(aCabec, {"C5_LOJACLI", 	(SZ1->Z1_LOJACLI)	, Nil})
+		aadd(aCabec, {"C5_CONDPAG", 	(SZ1->Z1_CONDPAG)	, Nil})
 
-	while (SZ1->(xFilial("SZ1")+(SZ1->Z1_CODIGO))) == SZ2->(xFilial("SZ2")+SZ2->Z2_CODIGO) .and. SZ2->(!EOF())
+		while (SZ1->(xFilial("SZ1")+(SZ1->Z1_CODIGO))) == SZ2->(xFilial("SZ2")+SZ2->Z2_CODIGO) .and. SZ2->(!EOF())
 
-		aLinha := {}
-		aadd(aLinha,{"C6_ITEM",			(SZ2->Z2_ITEM)    , Nil})
-		aadd(aLinha,{"C6_PRODUTO", 		(SZ2->Z2_PRODUTO) , Nil})
-		aadd(aLinha,{"C6_QTDVEN", 		(SZ2->Z2_QTDVEN)  , Nil})
-		aadd(aLinha,{"C6_PRCVEN",  		(SZ2->Z2_PRCVEN)	  , Nil})
-		aadd(aLinha,{"C6_TES",			(SZ2->Z2_TES)	  , Nil})
-		aadd(aItens, aLinha)
+			aLinha := {}
+			aadd(aLinha,{"C6_ITEM",			(SZ2->Z2_ITEM)    , Nil})
+			aadd(aLinha,{"C6_PRODUTO", 		(SZ2->Z2_PRODUTO) , Nil})
+			aadd(aLinha,{"C6_QTDVEN", 		(SZ2->Z2_QTDVEN)  , Nil})
+			aadd(aLinha,{"C6_PRCVEN",  		(SZ2->Z2_PRCVEN)	  , Nil})
+			aadd(aLinha,{"C6_TES",			(SZ2->Z2_TES)	  , Nil})
+			aadd(aItens, aLinha)
 
-		DBSkip()
+			DBSkip()
 
-	ENDDO
+		ENDDO
+		nOpcX := 3
 
-	//criar condição para não incluir pedido repetido
+		MSExecAuto({|a, b, c, d| MATA410(a, b, c, d)}, aCabec, aItens, nOpcX, .F.)
 
-	nOpcX := 3
-	MSExecAuto({|a, b, c, d| MATA410(a, b, c, d)}, aCabec, aItens, nOpcX, .F.)
+		If (lMsErroAuto)
+			MostraErro()
+			RollbackSx8()
+		Else
+			ConfirmSx8()
+			RecLock("SZ1", .F.)
+			SZ1->Z1_NUMERO := cVar
+			SZ1->(MsUnlock())
 
-	If (lMsErroAuto)
-		MostraErro()
-		RollbackSx8()
-	Else
-		ConfirmSx8()
-		RecLock("SZ1", .F.)
-		SZ1->Z1_NUMERO := cVar //campo recebe valor do código criado a partir do GetSXENum("SC5", "C5_NUM")
-		SZ1->(MsUnlock())
+			RecLock("SC5", .F.)
+			SC5->C5_CODPP := SZ1->Z1_CODIGO
+			SC5->(MsUnlock())
 
-		MsgInfo("Pedido de Venda incluido com sucesso.", "Aviso")
+			MsgInfo("Pedido de Venda incluido com sucesso.", "Aviso")
+		Endif
 	Endif
 Return()
 
 
 
 User Function Estornar()
-	
+
 	Private lMsErroAuto := .F.
 	aCabec   := {}
 	aItens   := {}
@@ -181,12 +187,17 @@ User Function Estornar()
 
 	nOpcX := 5
 	MSExecAuto({|a, b, c, d| MATA410(a, b, c, d)}, aCabec, aItens, nOpcX, .F.)
-
-	If (lMsErroAuto)
+If (lMsErroAuto)
 		MostraErro()
 	Else
+		RecLock("SZ1", .F.)
+		SZ1->Z1_NUMERO := "" //apagar campo
+		SZ1->(MsUnlock())
+
+		RecLock("SC5", .F.)
+		SC5->C5_CODPP := ""
+		SC5->(MsUnlock())
+
 		MsgInfo("Pedido de Venda excluído com sucesso.", "Aviso")
-
 	Endif
-
 Return()
