@@ -7,7 +7,6 @@ Relatorio de Pre Pedido
 @since 11/06/2021
 /*/
 
-
 User Function MVCOMR01()
 
 	Local oReport := Nil
@@ -17,6 +16,7 @@ User Function MVCOMR01()
 Return()
 
 Static Function ReportDef(cTab)
+
 
 	Local oReport   := Nil
 	Local oSection1 := Nil
@@ -30,17 +30,17 @@ Static Function ReportDef(cTab)
 	TRCell():New(oSection1, "Z1_CODIGO"   , , "Codigo"   , /*cPicture*/, TamSX3("Z1_CODIGO")[1]   , /*lPixel*/, {||(cTab) ->Z1_CODIGO}) //Criar as colunas que vÃ£o aparecer no relatÃ³rio
 	TRCell():New(oSection1, "Z1_TIPOPED"   , , "Tipo"   , /*cPicture*/, TamSX3("Z1_TIPOPED")[1]   , /*lPixel*/,{||(cTab) ->Z1_TIPOPED})
 	TRCell():New(oSection1, "Z1_CLIENTE"   , , "Cliente"   , /*cPicture*/, TamSX3("Z1_CLIENTE")[1]   , /*lPixel*/, {||(cTab) ->Z1_CLIENTE})
-	TRCell():New(oSection1, "A1_NOME"   , , "Nome do Cliente"   , /*cPicture*/, TamSX3("A1_NOME")[1]   , /*lPixel*/, {||(cTab) ->A1_NOME})
+	TRCell():New(oSection1, "A1_NOME"   , , "Nome do Cliente"   , /*cPicture*/, TamSX3("A1_NOME")[1]   , /*lPixel*/, {||(SA1->A1_NOME)})
 	TRCell():New(oSection1, "Z1_LOJACLI" , ,"Loja"   , /*cPictur*/, TamSX3("Z1_LOJACLI")[1]   , /*lPixel*/, {||(cTab) ->Z1_LOJACLI})
 	TRCell():New(oSection1, "Z1_CONDPAG"	, , "Condição de Pagamento"	, /*cPicture*/, TamSX3("Z1_CONDPAG")[1]   , /*lPixel*/,{||(cTab) ->Z1_CONDPAG})
 
 	oSection2 := TRSection():New(oReport)
-	TRCell():New(oSection2, "Z2_ITEM", , "Item"	, /*cPicture*/, TamSX3("Z2_ITEM")[1]   , /*lPixel*/)
-	TRCell():New(oSection2, "Z2_PRODUTO"	, , "Produto"	, /*cPicture*/, TamSX3("Z2_PRODUTO")[1]   , /*lPixel*/)
-	TRCell():New(oSection2, "B1_DESC"	, , "Descrição do Produto"	, /*cPicture*/, TamSX3("B1_DESC")[1]   , /*lPixel*/)
-	TRCell():New(oSection2, "Z2_QTDVEN", , "Quantidade"	, /*cPicture*/, TamSX3("Z2_QTDVEN")[1]   , /*lPixel*/)
-	TRCell():New(oSection2, "Z2_PRCVEN"	, , "Valor"	, /*cPicture*/, TamSX3("Z2_PRCVEN")[1]+12   , /*lPixel*/)
-	TRCell():New(oSection2, "Z2_TES", , "TES"	, /*cPicture*/, TamSX3("Z2_TES")[1]   , /*lPixel*/)
+	TRCell():New(oSection2, "Z2_ITEM", , "Item"	, /*cPicture*/, TamSX3("Z2_ITEM")[1]   , /*lPixel*/,{||(cTab) ->Z2_ITEM})
+	TRCell():New(oSection2, "Z2_PRODUTO"	, , "Produto"	, /*cPicture*/, TamSX3("Z2_PRODUTO")[1]   , /*lPixel*/,{||(cTab) ->Z2_PRODUTO})
+	TRCell():New(oSection2, "SZ2990.B1_DESC"	, , "Descrição do Produto"	, /*cPicture*/, TamSX3("B1_DESC")[1]   , /*lPixel*/,{||(SB1->B1_DESC)})
+	TRCell():New(oSection2, "Z2_QTDVEN", , "Quantidade"	, /*cPicture*/, TamSX3("Z2_QTDVEN")[1]   , /*lPixel*/,{||(cTab) ->Z2_QTDVEN})
+	TRCell():New(oSection2, "Z2_PRCVEN"	, , "Valor"	, /*cPicture*/, TamSX3("Z2_PRCVEN")[1]+12   , /*lPixel*/,{||(cTab) ->Z2_PRCVEN})
+	TRCell():New(oSection2, "Z2_TES", , "TES"	, /*cPicture*/, TamSX3("Z2_TES")[1]   , /*lPixel*/,/*{||(cTab) -> Z2_TES}*/)
 
 	//oBreak1 := TRBreak():New(oSection2, {|| cNat}, )
 //	TRFunction():New(oSection2:Cell("Z2_QTDVEN"), , "SUM", oBreak1, /**/, /*cPicture*/, , .T./*lEndSection*/, .F./*lEndReport*/, .F./*lEndPage*/, /*oParent*/, /*bCondition*/, /*lDisable*/, /*bCanPrint*/)
