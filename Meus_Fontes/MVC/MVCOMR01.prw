@@ -33,6 +33,8 @@ Static Function ReportDef(cTab)
 	TRCell():New(oSection1, "A1_NOME"   , , "Nome do Cliente"   , /*cPicture*/, TamSX3("A1_NOME")[1]   , /*lPixel*/, {||(SA1->A1_NOME)})
 	TRCell():New(oSection1, "Z1_LOJACLI" , ,"Loja"   , /*cPictur*/, TamSX3("Z1_LOJACLI")[1]   , /*lPixel*/, {||(cTab) ->Z1_LOJACLI})
 	TRCell():New(oSection1, "Z1_CONDPAG"	, , "Condição de Pagamento"	, /*cPicture*/, TamSX3("Z1_CONDPAG")[1]   , /*lPixel*/,{||(cTab) ->Z1_CONDPAG})
+	TRCell():New(oSection1, "E4_DESCRI"	, , "Descrição Cond.Pag"	, /*cPicture*/, TamSX3("E4_DESCRI")[1]   , /*lPixel*/,{||SE4->E4_DESCRI})
+
 
 	oSection2 := TRSection():New(oReport)
 	TRCell():New(oSection2, "Z2_ITEM", , "Item"	, /*cPicture*/, TamSX3("Z2_ITEM")[1]   , /*lPixel*/,{||(cTab) ->Z2_ITEM})
@@ -40,7 +42,8 @@ Static Function ReportDef(cTab)
 	TRCell():New(oSection2, "SZ2990.B1_DESC"	, , "Descrição do Produto"	, /*cPicture*/, TamSX3("B1_DESC")[1]   , /*lPixel*/,{||(SB1->B1_DESC)})
 	TRCell():New(oSection2, "Z2_QTDVEN", , "Quantidade"	, /*cPicture*/, TamSX3("Z2_QTDVEN")[1]   , /*lPixel*/,{||(cTab) ->Z2_QTDVEN})
 	TRCell():New(oSection2, "Z2_PRCVEN"	, , "Valor"	, /*cPicture*/, TamSX3("Z2_PRCVEN")[1]+12   , /*lPixel*/,{||(cTab) ->Z2_PRCVEN})
-	TRCell():New(oSection2, "Z2_TES", , "TES"	, /*cPicture*/, TamSX3("Z2_TES")[1]   , /*lPixel*/,/*{||(cTab) -> Z2_TES}*/)
+	TRCell():New(oSection2, "Z2_TES", , "TES"	, /*cPicture*/, TamSX3("Z2_TES")[1]   , /*lPixel*/,{||(cTab) -> Z2_TES})
+	TRCell():New(oSection2, "F4_FINALID", , "Descrição TES"	, /*cPicture*/, TamSX3("F4_FINALID")[1]   , /*lPixel*/,{||SF4-> F4_FINALID})
 
 	//oBreak1 := TRBreak():New(oSection2, {|| cNat}, )
 //	TRFunction():New(oSection2:Cell("Z2_QTDVEN"), , "SUM", oBreak1, /**/, /*cPicture*/, , .T./*lEndSection*/, .F./*lEndReport*/, .F./*lEndPage*/, /*oParent*/, /*bCondition*/, /*lDisable*/, /*bCanPrint*/)
@@ -57,26 +60,29 @@ Static Function ReportPrint(oReport)
 
 	Default oReport := Nil
 
-cQuery +="SELECT DISTINCT Z1_CODIGO," + CRLF
+cQuery +="SELECT DISTINCT Z1_CODIGO,"+ CRLF
 cQuery +="Z1_FILIAL, "+ CRLF
-cQuery +="Z1_TIPO, "+ CRLF
-cQuery +="Z1_CLIENTE, "+ CRLF
-cQuery +="Z1_LOJACLI, "+ CRLF
-cQuery +="Z1_TIPOPED, "+ CRLF
-cQuery +="Z1_CONDPAG, "+ CRLF
+cQuery +="Z1_TIPO,   "+ CRLF
+cQuery +="Z1_CLIENTE,"+ CRLF
+cQuery +="Z1_LOJACLI,"+ CRLF
+cQuery +="Z1_TIPOPED,"+ CRLF
+cQuery +="Z1_CONDPAG,"+ CRLF
 cQuery +="Z2_FILIAL, "+ CRLF
-cQuery +="Z2_ITEM, "+ CRLF
-cQuery +="Z2_PRODUTO, "+ CRLF
+cQuery +="Z2_ITEM,   "+ CRLF
+cQuery +="Z2_PRODUTO,"+ CRLF
 cQuery +="Z2_QTDVEN, "+ CRLF
 cQuery +="Z2_PRCVEN, "+ CRLF
-cQuery +="Z2_TES "+ CRLF
-cQuery +="A1_NOME, "+ CRLF
-cQuery +="B1_DESC	FROM "+RetSQLName("SZ1") +" INNER JOIN "+RetSQLName("SZ2")+" ON SZ1990.Z1_CODIGO = SZ2990.Z2_CODIGO "+ CRLF
-cQuery +="INNER JOIN "+RetSQLName("SA1")+" ON SZ1990.Z1_CLIENTE = SA1990.A1_COD "+ CRLF
-cQuery +="INNER JOIN "+RetSQLName("SB1")+" ON SZ2990.Z2_PRODUTO = SB1990.B1_COD "+ CRLF
-cQuery +="WHERE SZ1990.D_E_L_E_T_ = '' AND SZ2990.D_E_L_E_T_ = '' "+ CRLF
-cQuery +="AND Z1_FILIAL = "+ xFilial("SZ1")+" AND Z2_FILIAL = "+ xFilial("SZ2") + CRLF
-cQuery += "ORDER BY Z1_CODIGO ASC "+ CRLF
+cQuery +="Z2_TES,    "+ CRLF
+cQuery +="A1_NOME,   "+ CRLF
+cQuery +="B1_DESC,   "+ CRLF
+cQuery +="E4_DESCRI, "+ CRLF
+cQuery +="F4_FINALID FROM "+ RetSQLName("SZ1")+ " INNER JOIN "+RetSQLName("SZ2")+" ON SZ1990.Z1_CODIGO = SZ2990.Z2_CODIGO"+ CRLF
+cQuery +="INNER JOIN "+RetSQLName("SA1")+" ON SZ1990.Z1_CLIENTE = SA1990.A1_COD"+ CRLF
+cQuery +="INNER JOIN "+RetSQLName("SE4")+" ON SZ1990.Z1_CONDPAG = SE4990.E4_CODIGO"+ CRLF
+cQuery +="INNER JOIN "+RetSQLName("SB1")+" ON SZ2990.Z2_PRODUTO = SB1990.B1_COD"+ CRLF
+cQuery +="INNER JOIN "+RetSQLName("SF4")+" ON SZ2990.Z2_TES = SF4990.F4_CODIGO"+ CRLF
+cQuery +="WHERE SZ1990.D_E_L_E_T_ = '' AND SZ2990.D_E_L_E_T_ = '' AND Z1_FILIAL ="+ xFilial("SZ1")+" AND Z2_FILIAL ="+ xFilial("SZ2")+ CRLF
+cQuery +="ORDER BY Z1_CODIGO ASC"+ CRLF
 
 	MPSysOpenQuery(cQuery, (cTab))
 	DbSelectArea(cTab)
@@ -109,6 +115,7 @@ cQuery += "ORDER BY Z1_CODIGO ASC "+ CRLF
 			oSection1:Finish()
 
 			oSection1:Init()
+			
 
 			oSection1:PrintLine()
 
