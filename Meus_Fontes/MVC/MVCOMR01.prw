@@ -57,7 +57,6 @@ Static Function ReportPrint(oReport)
 	Local nRegs     := 0
 	Local nCont     := 0
 	Local cQuery := ""
-
 	Default oReport := Nil
 
 cQuery +="SELECT DISTINCT Z1_CODIGO,"+ CRLF
