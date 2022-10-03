@@ -27,19 +27,18 @@ User Function CCDToken()
 	cParams := "?LOGIN=" + cUser + "&PASSWORD=" + cPass
 
 	oRest:SetGetParams(cParams)
-	oRest:Get(aHeader)
 
-	if !oRest:SetGetParams(cParams)
+	if oRest:Get(aHeader)
 		cRet := oRest:GetResult()
+		
+	FWJsonDeserialize(cRet, @oResp)
+	cToken := oResp:AUTH_TOKEN
 	else
 		cRet :=oRest:GetLastError()
 	endif
 
 
 
-	FWJsonDeserialize(cRet, @oResp)
-
-	cToken := oResp:AUTH_TOKEN
 
 	FreeObj(oResp)
 	FreeObj(oRest)
@@ -159,10 +158,10 @@ User Function CCDAgenda()
 	if nQnt >= 2500
 		// cPage = 144,755
 		nQnt := (nQnt/200)
-		cPage := Round( nQnt, 0 )  // Resultado: 144
+		cPage := Round(Ceiling(nQnt), 0)  // Resultado: 145
 	else
 		nQnt :=(nQnt/100)
-		cPage := Round( nQnt, 0 ) // Resultado: 289
+		cPage := Round(Ceiling(nQnt), 0) // Resultado: 289
 
 	endif
 
@@ -191,8 +190,9 @@ User Function CCDAgenda()
 
 
 	aAdd(aRetorno, cChave)
-	aAdd(aRetorno, cPage)
-	aAdd(aRetorno, cToken)
+	//aAdd(aRetorno, cPage)
+	//aAdd(aRetorno, cToken)
+	//aAdd(aRetorno, cData)
 
 	FreeObj(oJson)
 	FreeObj(oResp)
@@ -217,6 +217,9 @@ User Function CCDChave()
 	Local nPage := 0
 	Local cToken := ''
 	Local oRest     := Nil
+	Local cMes :=  ''
+	Local CAno := ''
+	Local cDataR := ''
 
 	Local cUrl      := GetNewPar("MV_XCCDURL", "https://api.planoparasuaempresa.com.br")
 	Local cPath     := GetNewPar("MV_XCCDMOV", "/realizado/v2/dre")
@@ -236,22 +239,33 @@ User Function CCDChave()
 	Default nDoc    := 0
 	Default cHist   := ""
 
+
+//Query parte de itens 
+
 	cChave := aRetorno[1]
-	nPage := aRetorno[2]
-	cToken := aRetorno[3]
+	//nPage := aRetorno[2]
+	//cToken := aRetorno[3] // 
+	//cData	:= aRetorno[4]
+
+//	cMes:= SUBSTRING(cData, 7, 2)
+//	CAno:= SUBSTRING(cData, 1, 4)
+//	cDataR:= SUBSTRING(cData, 5, 2) + '/' + SUBSTRING(cData, 7, 2)+ '/' +SUBSTRING(cData, 1, 4)
 
 	oRest := FwRest():New(cUrl)
 	oRest:SetPath(cPath)
 
+while condition
+	
+end
 	oJson                             := JsonObject():New()
 	oJson['AUTH_TOKEN']           := cToken
 	oJson['CHAVE_INTEGRACAO']          := cChave
 	oJson['PAGINA']            := nPage
 
 	oImport                             := JsonObject():New()
-	oImport['MES']           := "1"
-	oImport['ANO']          := "2022"
-	oImport['DATA']            := "01/01/2022"
+	oImport['MES']           := cMes
+	oImport['ANO']          := CAno
+	oImport['DATA']            := cDataR //01/02/2022
 	oImport['COD_UNIDADE']    := "ACCO"
 	oImport['COD_CC']           := "01CEARA505"
 	oImport['DESC_CC']          := "COMUNICAÇÃO"
@@ -288,6 +302,6 @@ Endpoint Envio TED
 @author TOTVS
 @since XX/XX/XXXX
 /*/
-oRest:SetPostParams(oJson:ToJson())
+	oRest:SetPostParams(oJson:ToJson())
 
 
