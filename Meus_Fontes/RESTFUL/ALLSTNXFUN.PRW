@@ -95,9 +95,9 @@ User Function CCDAgenda()
 	cQuery += "	,'' CODPROJETO"				+ CRLF
 	cQuery += "	,'' GERADOR"				+ CRLF
 	cQuery += "	,'N' RATEIO"				+ CRLF
-	cQuery += "FROM CT2010 T0"				+ CRLF
-	cQuery += "INNER JOIN CT1010 T1 ON CT1_CONTA = CT2_DEBITO"	+ CRLF
-	cQuery += "INNER JOIN CTT010 T2 ON CTT_CUSTO = CT2_CCD"		+ CRLF
+	cQuery += "FROM "+RetSQLName(CT2)+" T0"				+ CRLF
+	cQuery += "INNER JOIN "+RetSQLName(CT1)+" T1 ON CT1_CONTA = CT2_DEBITO"	+ CRLF
+	cQuery += "INNER JOIN "+RetSQLName(CTT) +" T2 ON CTT_CUSTO = CT2_CCD"		+ CRLF
 	cQuery += "WHERE (SUBSTRING(CT2_DEBITO, 1, 1) = '3')"		+ CRLF
 	cQuery += "	AND T0.CT2_DATA >= '" + cData + "'"				+ CRLF
 	cQuery += "	AND T0.CT2_TPSALD = '1'"		+ CRLF
@@ -133,9 +133,9 @@ User Function CCDAgenda()
 	cQuery += "	,'' CODPROJETO"			+ CRLF
 	cQuery += "	,'' GERADOR"			+ CRLF
 	cQuery += "	,'N' RATEIO"			+ CRLF
-	cQuery += "FROM CT2010 T0"			+ CRLF
-	cQuery += "INNER JOIN CT1010 T1 ON CT1_CONTA = CT2_CREDIT"	+ CRLF
-	cQuery += "INNER JOIN CTT010 T2 ON CTT_CUSTO = CT2_CCC"		+ CRLF
+	cQuery += "FROM "+RetSQLName(CT2)+" T0"			+ CRLF
+	cQuery += "INNER JOIN "+RetSQLName(CT1)+" T1 ON CT1_CONTA = CT2_CREDIT"	+ CRLF
+	cQuery += "INNER JOIN "+RetSQLName(CTT) +" T2 ON CTT_CUSTO = CT2_CCC"		+ CRLF
 	cQuery += "WHERE (SUBSTRING(CT2_CREDIT, 1, 1) = '3')"		+ CRLF
 	cQuery += "	AND T0.CT2_DATA >= '" + cData + "'"				+ CRLF
 	cQuery += "	AND T0.CT2_TPSALD = '1'"	+ CRLF
@@ -259,9 +259,9 @@ User Function CCDChave()
 	cQuery += "	,'' CODPROJETO"+ CRLF
 	cQuery += "	,'' GERADOR"+ CRLF
 	cQuery += "	,'N' RATEIO"+ CRLF
-	cQuery += "FROM CT2010 T0"+ CRLF
-	cQuery += "INNER JOIN CT1010 T1 ON CT1_CONTA = CT2_DEBITO"+ CRLF
-	cQuery += "INNER JOIN CTT010 T2 ON CTT_CUSTO = CT2_CCD"+ CRLF
+	cQuery += "FROM "+RetSQLName(CT2)+"  T0"+ CRLF
+	cQuery += "INNER JOIN "+RetSQLName(CT1)+"  T1 ON CT1_CONTA = CT2_DEBITO"+ CRLF
+	cQuery += "INNER JOIN "+RetSQLName(CTT) +" T2 ON CTT_CUSTO = CT2_CCD"+ CRLF
 	cQuery += "WHERE (SUBSTRING(CT2_DEBITO, 1, 1) = '3')"+ CRLF
 	cQuery += "	AND T0.CT2_DATA >= '20220601'"+ CRLF
 	cQuery += "	AND T0.CT2_TPSALD = '1'"+ CRLF
@@ -297,9 +297,9 @@ User Function CCDChave()
 	cQuery += "	,'' CODPROJETO"+ CRLF
 	cQuery += "	,'' GERADOR"+ CRLF
 	cQuery += "	,'N' RATEIO"+ CRLF
-	cQuery += "FROM CT2010 T0"+ CRLF
-	cQuery += "INNER JOIN CT1010 T1 ON CT1_CONTA = CT2_CREDIT"+ CRLF
-	cQuery += "INNER JOIN CTT010 T2 ON CTT_CUSTO = CT2_CCC"+ CRLF
+	cQuery += "FROM "+RetSQLName(CT2)+"  T0"+ CRLF
+	cQuery += "INNER JOIN "+RetSQLName(CT1)+"  T1 ON CT1_CONTA = CT2_CREDIT"+ CRLF
+	cQuery += "INNER JOIN "+RetSQLName(CTT) +" T2 ON CTT_CUSTO = CT2_CCC"+ CRLF
 	cQuery += "WHERE (SUBSTRING(CT2_CREDIT, 1, 1) = '3')"+ CRLF
 	cQuery += "	AND T0.CT2_DATA >= '20220601'"+ CRLF
 	cQuery += "	AND T0.CT2_TPSALD = '1'"+ CRLF
