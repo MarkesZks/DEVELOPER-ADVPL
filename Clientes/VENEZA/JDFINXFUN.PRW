@@ -1,3 +1,8 @@
+/*
+Ajustar o campo DATA, COD_UNIDADE no Fluxo e Balanço conforme a query do DRE.
+Ajustar o retorno do campo COD_CONTA do Fluxo (campo E5_NATUREZ) no formato X.X.XX (1.3.06)
+*/
+
 #Include "Protheus.ch"
 
 Static nQuebra  := GetNewPar("MV_XQBRPAG", 100)
@@ -61,15 +66,16 @@ Endpoint Chave de Identificação
 /*/
 
 User Function ASChvIde(nOpc, dDtAtual)
-	Local nStatus := 0
-	Local cChave  := ""
-	Local cToken  := U_ASToken()
-	Local nPags   := U_ASPags(nOpc, dDtAtual)
-	Local oRest   := Nil
-	Local cPath   := ""
-	Local oJson   := Nil
-	Local cResp   := ""
-	Local oResp   := Nil
+	Local nStatus  := 0
+	Local cChave   := ""
+	Local cToken   := U_ASToken()
+	Local nPags    := U_ASPags(nOpc, dDtAtual)
+	Local oRest    := Nil
+	Local cPath    := ""
+	Local oJson    := Nil
+	Local cResp    := ""
+	Local oResp    := Nil
+	Local cDtAtual := ""
 
 	Default nOpc := 0
 
@@ -85,10 +91,13 @@ User Function ASChvIde(nOpc, dDtAtual)
 
 	oRest:SetPath(cPath)
 
+	cDtAtual := DToS(dDtAtual)
+	cDtAtual := SubStr(cDtAtual, 1, 4) + "-" + SubStr(cDtAtual, 5, 2) + "-" + SubStr(cDtAtual, 7, 2)
+
 	oJson                    := JsonObject():New()
 	oJson['AUTH_TOKEN']      := cToken
 	oJson['PAGINAS']         := nPags
-	oJson['COMPETENCIA']     := cDtComp
+	oJson['COMPETENCIA']     := cDtAtual
 	oJson['CARGA_ADICIONAL'] := 0
 
 	oRest:SetPostParams(EncodeUTF8(NoAcento(oJson:ToJson())))
@@ -111,7 +120,6 @@ User Function ASChvIde(nOpc, dDtAtual)
 		Endif
 	Else
 		cResp := EncodeUTF8(NoAcento(oRest:GetLastError()))
-
 	Endif
 
 	FreeObj(oJson)
@@ -192,6 +200,8 @@ User Function ASDRE()
 	Local dDtAtual := dDtIni
 	Local cDtAtual := SubStr(DToS(dDtAtual), 1, 6)
 	Local cDtMax   := SubStr(DToS(Date()), 1, 6)
+	Local nErros   := 0
+	Local lPassou  := .F.
 
 	oRest := FwRest():New(cUrlAPI)
 
@@ -208,7 +218,9 @@ User Function ASDRE()
 			aDados := U_ASDados(1, dDtAtual)
 
 			For nI := 1 To nPags
-				aJson := {}
+				aJson   := {}
+				nErros  := 0
+				lPassou := .F.
 
 				For nX := 1 to nQuebra
 					nAtual++
@@ -217,22 +229,22 @@ User Function ASDRE()
 						aAdd(aJson, JsonObject():New())
 						nPos := Len(aJson)
 
-						aJson[nPos]['MES']          := aDados[nAtual][1]
-						aJson[nPos]['ANO']          := aDados[nAtual][2]
-						aJson[nPos]['DATA']         := aDados[nAtual][3]
-						aJson[nPos]['COD_UNIDADE']  := aDados[nAtual][4]
-						aJson[nPos]['COD_CC']       := aDados[nAtual][5]
-						aJson[nPos]['DESC_CC']      := aDados[nAtual][6]
-						aJson[nPos]['COD_CONTA']    := aDados[nAtual][7]
-						aJson[nPos]['DESC_CONTA']   := aDados[nAtual][8]
-						aJson[nPos]['DOCUMENTO']    := aDados[nAtual][9]
-						aJson[nPos]['NATUREZA']     := aDados[nAtual][10]
+						aJson[nPos]['MES']          := AllTrim(StrTran(aDados[nAtual][1], '"', ''))
+						aJson[nPos]['ANO']          := AllTrim(StrTran(aDados[nAtual][2], '"', ''))
+						aJson[nPos]['DATA']         := AllTrim(StrTran(aDados[nAtual][3], '"', ''))
+						aJson[nPos]['COD_UNIDADE']  := AllTrim(StrTran(aDados[nAtual][4], '"', ''))
+						aJson[nPos]['COD_CC']       := AllTrim(StrTran(aDados[nAtual][5], '"', ''))
+						aJson[nPos]['DESC_CC']      := AllTrim(StrTran(aDados[nAtual][6], '"', ''))
+						aJson[nPos]['COD_CONTA']    := AllTrim(StrTran(aDados[nAtual][7], '"', ''))
+						aJson[nPos]['DESC_CONTA']   := AllTrim(StrTran(aDados[nAtual][8], '"', ''))
+						aJson[nPos]['DOCUMENTO']    := AllTrim(StrTran(aDados[nAtual][9], '"', ''))
+						aJson[nPos]['NATUREZA']     := AllTrim(StrTran(aDados[nAtual][10], '"', ''))
 						aJson[nPos]['VALOR']        := aDados[nAtual][11]
-						aJson[nPos]['HISTORICO']    := aDados[nAtual][12]
-						aJson[nPos]['COD_PROJETO']  := aDados[nAtual][13]
-						aJson[nPos]['GERADOR']      := aDados[nAtual][14]
-						aJson[nPos]['COD_DIMENSAO'] := aDados[nAtual][15]
-						aJson[nPos]['RATEIO']       := aDados[nAtual][16]
+						aJson[nPos]['HISTORICO']    := AllTrim(StrTran(aDados[nAtual][12], '"', ''))
+						aJson[nPos]['COD_PROJETO']  := AllTrim(StrTran(aDados[nAtual][13], '"', ''))
+						aJson[nPos]['GERADOR']      := AllTrim(StrTran(aDados[nAtual][14], '"', ''))
+						aJson[nPos]['COD_DIMENSAO'] := AllTrim(StrTran(aDados[nAtual][15], '"', ''))
+						aJson[nPos]['RATEIO']       := AllTrim(StrTran(aDados[nAtual][16], '"', ''))
 					Else
 						EXIT
 					Endif
@@ -268,12 +280,68 @@ User Function ASDRE()
 							Endif
 						Endif
 					Else
-						grvLog("DRE", "2",  EncodeUTF8(NoAcento(oJson:ToJson())), cResp, cCodSZ1)
+						While ((nErros <= 20) .And. (!lPassou))
+							nErros++
+
+							cToken := U_ASToken()
+							oJson['AUTH_TOKEN'] := cToken
+
+							oRest:SetPostParams(EncodeUTF8(NoAcento(oJson:ToJson())))
+
+							If (oRest:Post())
+								cResp := EncodeUTF8(NoAcento(oRest:GetResult()))
+
+								FWJsonDeserialize(cResp, @oResp)
+
+								If (ValType(oResp:status) == "N")
+									nStatus := oResp:status
+								Elseif (ValType(oResp:status) == "C")
+									nStatus := Val(oResp:status)
+								Endif
+
+								If (nStatus > 0)
+									grvLog("DRE", "1",  EncodeUTF8(NoAcento(oJson:ToJson())), cResp, cCodSZ1)
+
+									lPassou := .T.
+								Endif
+							Endif
+						Enddo
+
+						If !(lPassou)
+							grvLog("DRE", "2",  EncodeUTF8(NoAcento(oJson:ToJson())), cResp, cCodSZ1)
+						Endif
 					Endif
 				Else
-					cResp := EncodeUTF8(NoAcento(oRest:GetLastError()))
+					While ((nErros <= 20) .And. (!lPassou))
+						nErros++
 
-					grvLog("DRE", "2",  EncodeUTF8(NoAcento(oJson:ToJson())), cResp, cCodSZ1)
+						cToken := U_ASToken()
+						oJson['AUTH_TOKEN'] := cToken
+
+						oRest:SetPostParams(EncodeUTF8(NoAcento(oJson:ToJson())))
+
+						If (oRest:Post())
+							cResp := EncodeUTF8(NoAcento(oRest:GetResult()))
+
+							FWJsonDeserialize(cResp, @oResp)
+
+							If (ValType(oResp:status) == "N")
+								nStatus := oResp:status
+							Elseif (ValType(oResp:status) == "C")
+								nStatus := Val(oResp:status)
+							Endif
+
+							If (nStatus > 0)
+								grvLog("DRE", "1",  EncodeUTF8(NoAcento(oJson:ToJson())), cResp, cCodSZ1)
+
+								lPassou := .T.
+							Endif
+						Endif
+					Enddo
+
+					If !(lPassou)
+						grvLog("DRE", "2",  EncodeUTF8(NoAcento(oJson:ToJson())), cResp, cCodSZ1)
+					Endif
 				Endif
 			Next nI
 
@@ -318,6 +386,8 @@ User Function ASFluxo()
 	Local dDtAtual := dDtIni
 	Local cDtAtual := SubStr(DToS(dDtAtual), 1, 6)
 	Local cDtMax   := SubStr(DToS(Date()), 1, 6)
+	Local nErros   := 0
+	Local lPassou  := .F.
 
 	oRest := FwRest():New(cUrlAPI)
 
@@ -334,7 +404,9 @@ User Function ASFluxo()
 			aDados := U_ASDados(2, dDtAtual)
 
 			For nI := 1 To nPags
-				aJson := {}
+				aJson   := {}
+				nErros  := 0
+				lPassou := .F.
 
 				For nX := 1 to nQuebra
 					nAtual++
@@ -343,20 +415,20 @@ User Function ASFluxo()
 						aAdd(aJson, JsonObject():New())
 						nPos := Len(aJson)
 
-						aJson[nPos]['MES']             := aDados[nAtual][1]
-						aJson[nPos]['ANO']             := aDados[nAtual][2]
-						aJson[nPos]['DATA_VENCIMENTO'] := aDados[nAtual][3]
-						aJson[nPos]['COD_UNIDADE']     := aDados[nAtual][4]
-						aJson[nPos]['COD_DIMENSAO']    := aDados[nAtual][5]
-						aJson[nPos]['COD_CONTA']       := aDados[nAtual][6]
-						aJson[nPos]['DESC_CONTA']      := aDados[nAtual][7]
-						aJson[nPos]['DOCUMENTO']       := aDados[nAtual][8]
-						aJson[nPos]['NATUREZA']        := aDados[nAtual][9]
+						aJson[nPos]['MES']             := AllTrim(StrTran(aDados[nAtual][1], '"', ''))
+						aJson[nPos]['ANO']             := AllTrim(StrTran(aDados[nAtual][2], '"', ''))
+						aJson[nPos]['DATA_VENCIMENTO'] := AllTrim(StrTran(aDados[nAtual][3], '"', ''))
+						aJson[nPos]['COD_UNIDADE']     := AllTrim(StrTran(aDados[nAtual][4], '"', ''))
+						aJson[nPos]['COD_DIMENSAO']    := AllTrim(StrTran(aDados[nAtual][5], '"', ''))
+						aJson[nPos]['COD_CONTA']       := AllTrim(StrTran(aDados[nAtual][6], '"', ''))//
+						aJson[nPos]['DESC_CONTA']      := AllTrim(StrTran(aDados[nAtual][7], '"', ''))
+						aJson[nPos]['DOCUMENTO']       := AllTrim(StrTran(aDados[nAtual][8], '"', ''))
+						aJson[nPos]['NATUREZA']        := AllTrim(StrTran(aDados[nAtual][9], '"', ''))
 						aJson[nPos]['VALOR']           := aDados[nAtual][10]
-						aJson[nPos]['HISTORICO']       := aDados[nAtual][11]
-						aJson[nPos]['COD_PROJETO']     := aDados[nAtual][12]
-						aJson[nPos]['DATA_LIQUIDACAO'] := aDados[nAtual][13]
-						aJson[nPos]['GERADOR']         := aDados[nAtual][14]
+						aJson[nPos]['HISTORICO']       := AllTrim(StrTran(aDados[nAtual][11], '"', ''))
+						aJson[nPos]['COD_PROJETO']     := AllTrim(StrTran(aDados[nAtual][12], '"', ''))
+						aJson[nPos]['DATA_LIQUIDACAO'] := AllTrim(StrTran(aDados[nAtual][13], '"', ''))
+						aJson[nPos]['GERADOR']         := AllTrim(StrTran(aDados[nAtual][14], '"', ''))
 					Else
 						EXIT
 					Endif
@@ -392,11 +464,68 @@ User Function ASFluxo()
 							Endif
 						Endif
 					Else
-						grvLog("FLUXO", "2",  EncodeUTF8(NoAcento(oJson:ToJson())), cResp, cCodSZ1)
+						While ((nErros <= 20) .And. (!lPassou))
+							nErros++
+
+							cToken := U_ASToken()
+							oJson['AUTH_TOKEN'] := cToken
+
+							oRest:SetPostParams(EncodeUTF8(NoAcento(oJson:ToJson())))
+
+							If (oRest:Post())
+								cResp := EncodeUTF8(NoAcento(oRest:GetResult()))
+
+								FWJsonDeserialize(cResp, @oResp)
+
+								If (ValType(oResp:status) == "N")
+									nStatus := oResp:status
+								Elseif (ValType(oResp:status) == "C")
+									nStatus := Val(oResp:status)
+								Endif
+
+								If (nStatus > 0)
+									grvLog("DRE", "1",  EncodeUTF8(NoAcento(oJson:ToJson())), cResp, cCodSZ1)
+
+									lPassou := .T.
+								Endif
+							Endif
+						Enddo
+
+						If !(lPassou)
+							grvLog("FLUXO", "2",  EncodeUTF8(NoAcento(oJson:ToJson())), cResp, cCodSZ1)
+						Endif
 					Endif
 				Else
-					cResp := EncodeUTF8(NoAcento(oRest:GetLastError()))
-					grvLog("FLUXO", "2",  EncodeUTF8(NoAcento(oJson:ToJson())), cResp, cCodSZ1)
+					While ((nErros <= 20) .And. (!lPassou))
+						nErros++
+
+						cToken := U_ASToken()
+						oJson['AUTH_TOKEN'] := cToken
+
+						oRest:SetPostParams(EncodeUTF8(NoAcento(oJson:ToJson())))
+
+						If (oRest:Post())
+							cResp := EncodeUTF8(NoAcento(oRest:GetResult()))
+
+							FWJsonDeserialize(cResp, @oResp)
+
+							If (ValType(oResp:status) == "N")
+								nStatus := oResp:status
+							Elseif (ValType(oResp:status) == "C")
+								nStatus := Val(oResp:status)
+							Endif
+
+							If (nStatus > 0)
+								grvLog("FLUXO", "1",  EncodeUTF8(NoAcento(oJson:ToJson())), cResp, cCodSZ1)
+
+								lPassou := .T.
+							Endif
+						Endif
+					Enddo
+
+					If !(lPassou)
+						grvLog("FLUXO", "2",  EncodeUTF8(NoAcento(oJson:ToJson())), cResp, cCodSZ1)
+					Endif
 				Endif
 			Next nI
 
@@ -441,6 +570,8 @@ User Function ASBal()
 	Local dDtAtual := dDtIni
 	Local cDtAtual := SubStr(DToS(dDtAtual), 1, 6)
 	Local cDtMax   := SubStr(DToS(Date()), 1, 6)
+	Local nErros   := 0
+	Local lPassou  := .F.
 
 	oRest := FwRest():New(cUrlAPI)
 
@@ -457,7 +588,9 @@ User Function ASBal()
 			aDados := U_ASDados(3, dDtAtual)
 
 			For nI := 1 To nPags
-				aJson := {}
+				aJson   := {}
+				nErros  := 0
+				lPassou := .F.
 
 				For nX := 1 to nQuebra
 					nAtual++
@@ -466,11 +599,11 @@ User Function ASBal()
 						aAdd(aJson, JsonObject():New())
 						nPos := Len(aJson)
 
-						aJson[nPos]['MES']          := aDados[nAtual][1]
-						aJson[nPos]['ANO']          := aDados[nAtual][2]
-						aJson[nPos]['COD_UNIDADE']  := aDados[nAtual][3]
-						aJson[nPos]['COD_DIMENSAO'] := aDados[nAtual][4]
-						aJson[nPos]['COD_CONTA']    := aDados[nAtual][5]
+						aJson[nPos]['MES']          := AllTrim(StrTran(aDados[nAtual][1], '"', ''))
+						aJson[nPos]['ANO']          := AllTrim(StrTran(aDados[nAtual][2], '"', ''))
+						aJson[nPos]['COD_UNIDADE']  := AllTrim(StrTran(aDados[nAtual][3], '"', ''))
+						aJson[nPos]['COD_DIMENSAO'] := AllTrim(StrTran(aDados[nAtual][4], '"', ''))
+						aJson[nPos]['COD_CONTA']    := AllTrim(StrTran(aDados[nAtual][5], '"', ''))
 						aJson[nPos]['SALDO']        := aDados[nAtual][6]
 					Else
 						EXIT
@@ -507,11 +640,68 @@ User Function ASBal()
 							Endif
 						Endif
 					Else
-						grvLog("BALANCO", "2",  EncodeUTF8(NoAcento(oJson:ToJson())), cResp, cCodSZ1)
+						While ((nErros <= 20) .And. (!lPassou))
+							nErros++
+
+							cToken := U_ASToken()
+							oJson['AUTH_TOKEN'] := cToken
+
+							oRest:SetPostParams(EncodeUTF8(NoAcento(oJson:ToJson())))
+
+							If (oRest:Post())
+								cResp := EncodeUTF8(NoAcento(oRest:GetResult()))
+
+								FWJsonDeserialize(cResp, @oResp)
+
+								If (ValType(oResp:status) == "N")
+									nStatus := oResp:status
+								Elseif (ValType(oResp:status) == "C")
+									nStatus := Val(oResp:status)
+								Endif
+
+								If (nStatus > 0)
+									grvLog("BALANCO", "1",  EncodeUTF8(NoAcento(oJson:ToJson())), cResp, cCodSZ1)
+
+									lPassou := .T.
+								Endif
+							Endif
+						Enddo
+
+						If !(lPassou)
+							grvLog("BALANCO", "2",  EncodeUTF8(NoAcento(oJson:ToJson())), cResp, cCodSZ1)
+						Endif
 					Endif
 				Else
-					cResp := EncodeUTF8(NoAcento(oRest:GetLastError()))
-					grvLog("BALANCO", "2",  EncodeUTF8(NoAcento(oJson:ToJson())), cResp, cCodSZ1)
+					While ((nErros <= 20) .And. (!lPassou))
+						nErros++
+
+						cToken := U_ASToken()
+						oJson['AUTH_TOKEN'] := cToken
+
+						oRest:SetPostParams(EncodeUTF8(NoAcento(oJson:ToJson())))
+
+						If (oRest:Post())
+							cResp := EncodeUTF8(NoAcento(oRest:GetResult()))
+
+							FWJsonDeserialize(cResp, @oResp)
+
+							If (ValType(oResp:status) == "N")
+								nStatus := oResp:status
+							Elseif (ValType(oResp:status) == "C")
+								nStatus := Val(oResp:status)
+							Endif
+
+							If (nStatus > 0)
+								grvLog("BALANCO", "1",  EncodeUTF8(NoAcento(oJson:ToJson())), cResp, cCodSZ1)
+
+								lPassou := .T.
+							Endif
+						Endif
+					Enddo
+
+					If !(lPassou)
+						grvLog("BALANCO", "2",  EncodeUTF8(NoAcento(oJson:ToJson())), cResp, cCodSZ1)
+					Endif
 				Endif
 			Next nI
 
@@ -599,11 +789,52 @@ Static Function qryDRE(dDtAtual)
 
 	cQuery := "SELECT SUBSTRING(T0.CT2_DATA, 5, 2) MES" + CRLF
 	cQuery += "	,SUBSTRING(T0.CT2_DATA, 1, 4) ANO" + CRLF
-	cQuery += "	,SUBSTRING(T0.CT2_DATA, 7, 2) || SUBSTRING(T0.CT2_DATA, 5, 2) || SUBSTRING(T0.CT2_DATA, 1, 4) DATA" + CRLF
-	cQuery += "	,'010' COD_UNIDADE" + CRLF
+	cQuery += "	,SUBSTRING(T0.CT2_DATA, 7, 2) || '/' || SUBSTRING(T0.CT2_DATA, 5, 2) || '/' || SUBSTRING(T0.CT2_DATA, 1, 4) DATA" + CRLF
+	cQuery += "	,CASE " + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '010101'" + CRLF
+	cQuery += "			THEN '101'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '010102'" + CRLF
+	cQuery += "			THEN '102'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '010103'" + CRLF
+	cQuery += "			THEN '103'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '010104'" + CRLF
+	cQuery += "			THEN '104'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '010105'" + CRLF
+	cQuery += "			THEN '105'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '010106'" + CRLF
+	cQuery += "			THEN '106'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '010107'" + CRLF
+	cQuery += "			THEN '107'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '020201'" + CRLF
+	cQuery += "			THEN '201'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '020202'" + CRLF
+	cQuery += "			THEN '202'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '020203'" + CRLF
+	cQuery += "			THEN '203'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '020204'" + CRLF
+	cQuery += "			THEN '204'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '020206'" + CRLF
+	cQuery += "			THEN '206'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '020207'" + CRLF
+	cQuery += "			THEN '207'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '020209'" + CRLF
+	cQuery += "			THEN '209'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '020210'" + CRLF
+	cQuery += "			THEN '210'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '020211'" + CRLF
+	cQuery += "			THEN '211'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '030201'" + CRLF
+	cQuery += "			THEN '201'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '030202'" + CRLF
+	cQuery += "			THEN '030202'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '030203'" + CRLF
+	cQuery += "			THEN '030203'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '030204'" + CRLF
+	cQuery += "			THEN '030204'" + CRLF
+	cQuery += "		END COD_UNIDADE" + CRLF
 	cQuery += "	,T0.CT2_CCD COD_CC" + CRLF
 	cQuery += "	,T1.CTT_DESC01 DESC_CC" + CRLF
-	cQuery += "	,T0.CT2_DEBITO COD_CONTA" + CRLF
+	cQuery += "	,TRIM(T0.CT2_DEBITO) || '#' || TRIM(T0.CT2_CCD) COD_CONTA" + CRLF
 	cQuery += "	,T2.CT1_DESC01 DESC_CONTA" + CRLF
 	cQuery += "	,TRIM(T0.CT2_DOC) || '/' || TRIM(T0.CT2_LOTE) || '/' || TRIM(T0.CT2_SBLOTE) DOCUMENTO" + CRLF
 	cQuery += "	,'D' NATUREZA" + CRLF
@@ -633,11 +864,52 @@ Static Function qryDRE(dDtAtual)
 	cQuery += "" + CRLF
 	cQuery += "SELECT SUBSTRING(T0.CT2_DATA, 5, 2) MES" + CRLF
 	cQuery += "	,SUBSTRING(T0.CT2_DATA, 1, 4) ANO" + CRLF
-	cQuery += "	,SUBSTRING(T0.CT2_DATA, 7, 2) || SUBSTRING(T0.CT2_DATA, 5, 2) || SUBSTRING(T0.CT2_DATA, 1, 4) DATA" + CRLF
-	cQuery += "	,'010' COD_UNIDADE" + CRLF
+	cQuery += "	,SUBSTRING(T0.CT2_DATA, 7, 2) || '/' || SUBSTRING(T0.CT2_DATA, 5, 2) || '/' || SUBSTRING(T0.CT2_DATA, 1, 4) DATA" + CRLF
+	cQuery += "	,CASE " + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '010101'" + CRLF
+	cQuery += "			THEN '101'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '010102'" + CRLF
+	cQuery += "			THEN '102'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '010103'" + CRLF
+	cQuery += "			THEN '103'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '010104'" + CRLF
+	cQuery += "			THEN '104'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '010105'" + CRLF
+	cQuery += "			THEN '105'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '010106'" + CRLF
+	cQuery += "			THEN '106'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '010107'" + CRLF
+	cQuery += "			THEN '107'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '020201'" + CRLF
+	cQuery += "			THEN '201'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '020202'" + CRLF
+	cQuery += "			THEN '202'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '020203'" + CRLF
+	cQuery += "			THEN '203'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '020204'" + CRLF
+	cQuery += "			THEN '204'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '020206'" + CRLF
+	cQuery += "			THEN '206'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '020207'" + CRLF
+	cQuery += "			THEN '207'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '020209'" + CRLF
+	cQuery += "			THEN '209'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '020210'" + CRLF
+	cQuery += "			THEN '210'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '020211'" + CRLF
+	cQuery += "			THEN '211'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '030201'" + CRLF
+	cQuery += "			THEN '201'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '030202'" + CRLF
+	cQuery += "			THEN '030202'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '030203'" + CRLF
+	cQuery += "			THEN '030203'" + CRLF
+	cQuery += "		WHEN T0.CT2_FILORI = '030204'" + CRLF
+	cQuery += "			THEN '030204'" + CRLF
+	cQuery += "		END COD_UNIDADE" + CRLF
 	cQuery += "	,T0.CT2_CCC COD_CC" + CRLF
 	cQuery += "	,T1.CTT_DESC01 DESC_CC" + CRLF
-	cQuery += "	,T0.CT2_CREDIT COD_CONTA" + CRLF
+	cQuery += "	,TRIM(T0.CT2_CREDIT) || '#' || TRIM(T0.CT2_CCC) COD_CONTA" + CRLF
 	cQuery += "	,T2.CT1_DESC01 DESC_CONTA" + CRLF
 	cQuery += "	,TRIM(T0.CT2_DOC) || '/' || TRIM(T0.CT2_LOTE) || '/' || TRIM(T0.CT2_SBLOTE) DOCUMENTO" + CRLF
 	cQuery += "	,'C' NATUREZA" + CRLF
@@ -662,6 +934,7 @@ Static Function qryDRE(dDtAtual)
 	cQuery += "	AND SUBSTRING(T0.CT2_CREDIT, 1, 1) >= '3'" + CRLF
 	cQuery += "	AND T0.CT2_TPSALD = '1'" + CRLF
 	cQuery += "	AND T0.D_E_L_E_T_ = ''" + CRLF
+
 Return(cQuery)
 
 /*/{Protheus.doc} qryFluxo
@@ -675,13 +948,53 @@ Static Function qryFluxo(dDtAtual)
 	Local cQuery  := ""
 
 	Default dDtAtual := dDataBase
-
 	cQuery := "SELECT SUBSTRING(T1.E1_VENCREA, 5, 2) MES" + CRLF
 	cQuery += "	,SUBSTRING(T1.E1_VENCREA, 1, 4) ANO" + CRLF
 	cQuery += "	,SUBSTRING(T1.E1_VENCREA, 7, 2) || '/' || SUBSTRING(T1.E1_VENCREA, 5, 2) || '/' || SUBSTRING(T1.E1_VENCREA, 1, 4) DATA_VENCIMENTO" + CRLF
-	cQuery += "	,'010' COD_UNIDADE" + CRLF
+	cQuery += "	,CASE " + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '010101'" + CRLF
+	cQuery += "			THEN '101'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '010102'" + CRLF
+	cQuery += "			THEN '102'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '010103'" + CRLF
+	cQuery += "			THEN '103'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '010104'" + CRLF
+	cQuery += "			THEN '104'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '010105'" + CRLF
+	cQuery += "			THEN '105'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '010106'" + CRLF
+	cQuery += "			THEN '106'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '010107'" + CRLF
+	cQuery += "			THEN '107'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020201'" + CRLF
+	cQuery += "			THEN '201'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020202'" + CRLF
+	cQuery += "			THEN '202'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020203'" + CRLF
+	cQuery += "			THEN '203'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020204'" + CRLF
+	cQuery += "			THEN '204'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020206'" + CRLF
+	cQuery += "			THEN '206'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020207'" + CRLF
+	cQuery += "			THEN '207'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020209'" + CRLF
+	cQuery += "			THEN '209'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020210'" + CRLF
+	cQuery += "			THEN '210'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020211'" + CRLF
+	cQuery += "			THEN '211'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '030201'" + CRLF
+	cQuery += "			THEN '201'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '030202'" + CRLF
+	cQuery += "			THEN '030202'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '030203'" + CRLF
+	cQuery += "			THEN '030203'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '030204'" + CRLF
+	cQuery += "			THEN '030204'" + CRLF
+	cQuery += "		END COD_UNIDADE" + CRLF
 	cQuery += "	,'' COD_DIMENSAO" + CRLF
-	cQuery += "	,T0.E5_NATUREZ COD_CONTA" + CRLF
+	cQuery += " ,SUBSTRING(T0.E5_NATUREZ, 1, 1) || '.' || SUBSTRING(T0.E5_NATUREZ, 2, 1) || '.' || SUBSTRING(T0.E5_NATUREZ, 3, 2) COD_CONTA"+ CRLF
 	cQuery += "	,T2.ED_DESCRIC DESC_CONTA" + CRLF
 	cQuery += "	,T0.E5_PREFIXO || '/' || T0.E5_NUMERO || '/' || T0.E5_PARCELA DOCUMENTO" + CRLF
 	cQuery += "	,'C' NATUREZA" + CRLF
@@ -707,7 +1020,8 @@ Static Function qryFluxo(dDtAtual)
 	cQuery += "		AND (T2.D_E_L_E_T_ = '')" + CRLF
 	cQuery += "		)" + CRLF
 	cQuery += "WHERE T0.D_E_L_E_T_ = ''" + CRLF
-	cQuery += "	AND T0.E5_DTDIGIT BETWEEN '" + DToS(dDtAtual) + "' AND '" + DToS(LastDay(dDtAtual)) + "'" + CRLF
+	//cQuery += "	AND T0.E5_DTDIGIT BETWEEN '" + DToS(dDtAtual) + "' AND '" + DToS(LastDay(dDtAtual)) + "'" + CRLF
+	cQuery += "	AND T1.E1_VENCREA BETWEEN '" + DToS(dDtAtual) + "' AND '" + DToS(LastDay(dDtAtual)) + "'" + CRLF
 	cQuery += "	AND T0.E5_VALOR > 0" + CRLF
 	cQuery += "	AND T0.E5_RECPAG = 'R'" + CRLF
 	cQuery += "	AND T0.E5_DTCANBX = ''" + CRLF
@@ -722,9 +1036,50 @@ Static Function qryFluxo(dDtAtual)
 	cQuery += "SELECT SUBSTRING(T1.E2_VENCREA, 5, 2) MES" + CRLF
 	cQuery += "	,SUBSTRING(T1.E2_VENCREA, 1, 4) ANO" + CRLF
 	cQuery += "	,SUBSTRING(T1.E2_VENCREA, 7, 2) || '/' || SUBSTRING(T1.E2_VENCREA, 5, 2) || '/' || SUBSTRING(T1.E2_VENCREA, 1, 4) DATA_VENCIMENTO" + CRLF
-	cQuery += "	,'010' COD_UNIDADE" + CRLF
+	cQuery += "	,CASE " + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '010101'" + CRLF
+	cQuery += "			THEN '101'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '010102'" + CRLF
+	cQuery += "			THEN '102'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '010103'" + CRLF
+	cQuery += "			THEN '103'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '010104'" + CRLF
+	cQuery += "			THEN '104'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '010105'" + CRLF
+	cQuery += "			THEN '105'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '010106'" + CRLF
+	cQuery += "			THEN '106'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '010107'" + CRLF
+	cQuery += "			THEN '107'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020201'" + CRLF
+	cQuery += "			THEN '201'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020202'" + CRLF
+	cQuery += "			THEN '202'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020203'" + CRLF
+	cQuery += "			THEN '203'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020204'" + CRLF
+	cQuery += "			THEN '204'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020206'" + CRLF
+	cQuery += "			THEN '206'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020207'" + CRLF
+	cQuery += "			THEN '207'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020209'" + CRLF
+	cQuery += "			THEN '209'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020210'" + CRLF
+	cQuery += "			THEN '210'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020211'" + CRLF
+	cQuery += "			THEN '211'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '030201'" + CRLF
+	cQuery += "			THEN '201'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '030202'" + CRLF
+	cQuery += "			THEN '030202'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '030203'" + CRLF
+	cQuery += "			THEN '030203'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '030204'" + CRLF
+	cQuery += "			THEN '030204'" + CRLF
+	cQuery += "		END COD_UNIDADE" + CRLF
 	cQuery += "	,'' COD_DIMENSAO" + CRLF
-	cQuery += "	,T0.E5_NATUREZ COD_CONTA" + CRLF
+	cQuery += " ,SUBSTRING(T0.E5_NATUREZ, 1, 1) || '.' || SUBSTRING(T0.E5_NATUREZ, 2, 1) || '.' || SUBSTRING(T0.E5_NATUREZ, 3, 2) COD_CONTA"+ CRLF
 	cQuery += "	,T2.ED_DESCRIC DESC_CONTA" + CRLF
 	cQuery += "	,T0.E5_PREFIXO || '/' || T0.E5_NUMERO || '/' || T0.E5_PARCELA DOCUMENTO" + CRLF
 	cQuery += "	,'D' NATUREZA" + CRLF
@@ -750,7 +1105,8 @@ Static Function qryFluxo(dDtAtual)
 	cQuery += "		AND (T2.D_E_L_E_T_ = '')" + CRLF
 	cQuery += "		)" + CRLF
 	cQuery += "WHERE T0.D_E_L_E_T_ = ''" + CRLF
-	cQuery += "	AND T0.E5_DTDIGIT BETWEEN '" + DToS(dDtAtual) + "' AND '" + DToS(LastDay(dDtAtual)) + "'" + CRLF
+	//cQuery += "	AND T0.E5_DTDIGIT BETWEEN '" + DToS(dDtAtual) + "' AND '" + DToS(LastDay(dDtAtual)) + "'" + CRLF
+	cQuery += "	AND T1.E2_VENCREA BETWEEN '" + DToS(dDtAtual) + "' AND '" + DToS(LastDay(dDtAtual)) + "'" + CRLF
 	cQuery += "	AND T0.E5_VALOR > 0" + CRLF
 	cQuery += "	AND T0.E5_RECPAG = 'P'" + CRLF
 	cQuery += "	AND T0.E5_DTCANBX = ''" + CRLF
@@ -765,9 +1121,50 @@ Static Function qryFluxo(dDtAtual)
 	cQuery += "SELECT SUBSTRING(T0.E5_DTDIGIT, 5, 2) MES" + CRLF
 	cQuery += "	,SUBSTRING(T0.E5_DTDIGIT, 1, 4) ANO" + CRLF
 	cQuery += "	,SUBSTRING(T0.E5_DTDIGIT, 7, 2) || '/' || SUBSTRING(T0.E5_DTDIGIT, 5, 2) || '/' || SUBSTRING(T0.E5_DTDIGIT, 1, 4) DATA_VENCIMENTO" + CRLF
-	cQuery += "	,'010' COD_UNIDADE" + CRLF
+	cQuery += "	,CASE " + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '010101'" + CRLF
+	cQuery += "			THEN '101'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '010102'" + CRLF
+	cQuery += "			THEN '102'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '010103'" + CRLF
+	cQuery += "			THEN '103'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '010104'" + CRLF
+	cQuery += "			THEN '104'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '010105'" + CRLF
+	cQuery += "			THEN '105'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '010106'" + CRLF
+	cQuery += "			THEN '106'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '010107'" + CRLF
+	cQuery += "			THEN '107'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020201'" + CRLF
+	cQuery += "			THEN '201'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020202'" + CRLF
+	cQuery += "			THEN '202'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020203'" + CRLF
+	cQuery += "			THEN '203'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020204'" + CRLF
+	cQuery += "			THEN '204'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020206'" + CRLF
+	cQuery += "			THEN '206'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020207'" + CRLF
+	cQuery += "			THEN '207'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020209'" + CRLF
+	cQuery += "			THEN '209'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020210'" + CRLF
+	cQuery += "			THEN '210'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '020211'" + CRLF
+	cQuery += "			THEN '211'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '030201'" + CRLF
+	cQuery += "			THEN '201'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '030202'" + CRLF
+	cQuery += "			THEN '030202'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '030203'" + CRLF
+	cQuery += "			THEN '030203'" + CRLF
+	cQuery += "		WHEN T0.E5_FILORIG = '030204'" + CRLF
+	cQuery += "			THEN '030204'" + CRLF
+	cQuery += "		END COD_UNIDADE" + CRLF
 	cQuery += "	,'' COD_DIMENSAO" + CRLF
-	cQuery += "	,T0.E5_NATUREZ COD_CONTA" + CRLF
+	cQuery += " ,SUBSTRING(T0.E5_NATUREZ, 1, 1) || '.' || SUBSTRING(T0.E5_NATUREZ, 2, 1) || '.' || SUBSTRING(T0.E5_NATUREZ, 3, 2) COD_CONTA"+ CRLF
 	cQuery += "	,T1.ED_DESCRIC DESC_CONTA" + CRLF
 	cQuery += "	,T0.E5_PREFIXO || '/' || T0.E5_NUMERO || '/' || T0.E5_PARCELA DOCUMENTO" + CRLF
 	cQuery += "	,CASE " + CRLF
@@ -808,7 +1205,48 @@ Static Function qryBal(dDtAtual)
 
 	cQuery := "SELECT SUBSTRING(T0.CQ0_DATA, 5, 2) MES" + CRLF
 	cQuery += "	,SUBSTRING(T0.CQ0_DATA, 1, 4) ANO" + CRLF
-	cQuery += "	,'010' COD_UNIDADE" + CRLF
+	cQuery += "	, CASE " + CRLF
+	cQuery += "		WHEN T0.CQ0_FILIAL = '010101'" + CRLF
+	cQuery += "			THEN '101'" + CRLF
+	cQuery += "		WHEN T0.CQ0_FILIAL = '010102'" + CRLF
+	cQuery += "			THEN '102'" + CRLF
+	cQuery += "		WHEN T0.CQ0_FILIAL = '010103'" + CRLF
+	cQuery += "			THEN '103'" + CRLF
+	cQuery += "		WHEN T0.CQ0_FILIAL = '010104'" + CRLF
+	cQuery += "			THEN '104'" + CRLF
+	cQuery += "		WHEN T0.CQ0_FILIAL = '010105'" + CRLF
+	cQuery += "			THEN '105'" + CRLF
+	cQuery += "		WHEN T0.CQ0_FILIAL = '010106'" + CRLF
+	cQuery += "			THEN '106'" + CRLF
+	cQuery += "		WHEN T0.CQ0_FILIAL = '010107'" + CRLF
+	cQuery += "			THEN '107'" + CRLF
+	cQuery += "		WHEN T0.CQ0_FILIAL = '020201'" + CRLF
+	cQuery += "			THEN '201'" + CRLF
+	cQuery += "		WHEN T0.CQ0_FILIAL = '020202'" + CRLF
+	cQuery += "			THEN '202'" + CRLF
+	cQuery += "		WHEN T0.CQ0_FILIAL = '020203'" + CRLF
+	cQuery += "			THEN '203'" + CRLF
+	cQuery += "		WHEN T0.CQ0_FILIAL = '020204'" + CRLF
+	cQuery += "			THEN '204'" + CRLF
+	cQuery += "		WHEN T0.CQ0_FILIAL = '020206'" + CRLF
+	cQuery += "			THEN '206'" + CRLF
+	cQuery += "		WHEN T0.CQ0_FILIAL = '020207'" + CRLF
+	cQuery += "			THEN '207'" + CRLF
+	cQuery += "		WHEN T0.CQ0_FILIAL = '020209'" + CRLF
+	cQuery += "			THEN '209'" + CRLF
+	cQuery += "		WHEN T0.CQ0_FILIAL = '020210'" + CRLF
+	cQuery += "			THEN '210'" + CRLF
+	cQuery += "		WHEN T0.CQ0_FILIAL = '020211'" + CRLF
+	cQuery += "			THEN '211'" + CRLF
+	cQuery += "		WHEN T0.CQ0_FILIAL = '030201'" + CRLF
+	cQuery += "			THEN '201'" + CRLF
+	cQuery += "		WHEN T0.CQ0_FILIAL = '030202'" + CRLF
+	cQuery += "			THEN '202'" + CRLF
+	cQuery += "		WHEN T0.CQ0_FILIAL = '030203'" + CRLF
+	cQuery += "			THEN '203'" + CRLF
+	cQuery += "		WHEN T0.CQ0_FILIAL = '030204'" + CRLF
+	cQuery += "			THEN '204'" + CRLF
+	cQuery += "		END COD_UNIDADE" + CRLF
 	cQuery += "	,'' COD_DIMENSAO" + CRLF
 	cQuery += "	,T0.CQ0_CONTA COD_CONTA" + CRLF
 	cQuery += "	,SUM(T0.CQ0_CREDIT - T0.CQ0_DEBITO) SALDO" + CRLF
@@ -822,6 +1260,7 @@ Static Function qryBal(dDtAtual)
 	cQuery += "		)" + CRLF
 	cQuery += "GROUP BY T0.CQ0_DATA" + CRLF
 	cQuery += "	,T0.CQ0_CONTA" + CRLF
+	cQuery += "	,T0.CQ0_FILIAL" + CRLF
 Return(cQuery)
 
 /*/{Protheus.doc} GrvLog
